@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Dashboard Hormigón – Sala de Control</title>
+
+<style>
+:root{
+  --primary:#d9232d;
+  --dark:#222;
+  --bg:#f2f4f7;
+  --card:#ffffff;
+  --muted:#777;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:Arial,Helvetica,sans-serif;
+  background:var(--bg);
+}
+header{
+  background:var(--dark);
+  color:#fff;
+  padding:12px 28px;
+}
+header .wrap{
+  max-width:1400px;
+  margin:auto;
+  display:flex;
+  align-items:center;
+  gap:16px;
+}
+header img{height:52px}
+.container{
+  max-width:1400px;
+  margin:20px auto;
+  padding:0 14px;
+}
+.card{
+  background:var(--card);
+  border-radius:12px;
+  padding:16px;
+  box-shadow:0 2px 6px rgba(0,0,0,.08);
+  margin-bottom:18px;
+}
+.card h2{
+  margin:0 0 10px;
+  font-size:18px;
+}
+.form-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+  gap:12px 18px;
+}
+label{
+  font-size:11px;
+  font-weight:bold;
+  color:var(--muted);
+  display:block;
+  margin-bottom:4px;
+}
+select,input,textarea{
+  width:100%;
+  padding:6px 8px;
+  border-radius:6px;
+  border:1px solid #cfd3d8;
+  font-size:13px;
+}
+textarea{resize:vertical;min-height:40px;}
+.summary{
+  font-size:13px;
+  margin-top:10px;
+}
+.summary span{
+  color:var(--primary);
+  font-weight:bold;
+}
+.btn-bar{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:10px;
+}
+button{
+  border:none;
+  border-radius:6px;
+  padding:7px 12px;
+  font-size:13px;
+  cursor:pointer;
+}
+.btn-primary{background:var(--primary);color:#fff;}
+.btn-secondary{background:#555;color:#fff;}
+.btn-ghost{background:#eee;color:#333;}
+table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:12px;
+}
+th,td{
+  padding:4px 6px;
+  border-bottom:1px solid #e1e1e1;
+  white-space:nowrap;
+}
+th{background:#f0f0f0;text-align:left;}
+tr:nth-child(even) td{background:#fafafa;}
+.footer{
+  text-align:center;
+  font-size:12px;
+  color:#999;
+  margin:16px 0 30px;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <div class="wrap">
+    <img src="logo_Xtreme.png" alt="Xtreme">
+    <div>
+      <h1>Dashboard Hormigón – Sala de Control</h1>
+      <div style="font-size:13px;color:#ccc">
+        Excel Online · Power Automate · SharePoint · Auditoría por usuario
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- DATOS HORMIGÓN -->
+  <div class="card">
+    <h2>Datos de Hormigón</h2>
+    <div class="form-grid">
+      <div>
+        <label>Grado Hormigón</label>
+        <select id="grado"></select>
+      </div>
+      <div>
+        <label>Suministro</label>
+        <select id="suministro"></select>
+      </div>
+      <div>
+        <label>Turno</label>
+        <select id="turno"></select>
+      </div>
+      <div>
+        <label>Grupo</label>
+        <select id="grupo"></select>
+      </div>
+      <div>
+        <label>Mina (libre)</label>
+        <input id="mina" placeholder="Ej: Teniente">
+      </div>
+      <div>
+        <label>Postura (libre)</label>
+        <input id="postura" placeholder="Ej: C-49 IZ">
+      </div>
+    </div>
+  </div>
+
+  <!-- CONDICIÓN CNC -->
+  <div class="card">
+    <h2>Condición CNC</h2>
+    <div class="form-grid">
+      <div>
+        <label>Responsable CNC</label>
+        <select id="resp"></select>
+      </div>
+      <div>
+        <label>CNC Nivel 1</label>
+        <select id="cnc1"></select>
+      </div>
+      <div>
+        <label>CNC Nivel 2</label>
+        <select id="cnc2"></select>
+      </div>
+      <div>
+        <label>Observación / Detalle</label>
+        <textarea id="obs" placeholder="Observaciones adicionales"></textarea>
+      </div>
+    </div>
+    <div class="summary" id="resumen"></div>
+  </div>
+
+  <!-- USUARIO + GUARDADO -->
+  <div class="card">
+    <h2>Usuario y guardado</h2>
+    <div class="form-grid">
+      <div>
+        <label>Usuario (nombre o correo)</label>
+        <input id="usuario" placeholder="Ej: ladasme@xtreme.cl">
+      </div>
+    </div>
+
+    <div class="btn-bar">
+      <button class="btn-primary" type="button" onclick="guardarRegistro()">💾 Guardar en SharePoint</button>
+      <button class="btn-secondary" type="button" onclick="limpiarFormulario()">🧹 Limpiar formulario</button>
+      <button class="btn-ghost" type="button" onclick="cargarHistorial()">📜 Actualizar historial</button>
+    </div>
+    <div id="estado" style="font-size:12px;color:#555;margin-top:8px;"></div>
+  </div>
+
+  <!-- HISTORIAL / AUDITORÍA -->
+  <div class="card">
+    <h2>Historial reciente (auditoría)</h2>
+    <div id="historial">Sin datos cargados aún.</div>
+  </div>
+
+  <div class="footer">
+    Xtreme Mining · Hormigones · Integración Excel/SharePoint/Power Automate
+  </div>
+
+</div>
+
+<script>
+/* =====================================================
+   CONFIGURACIÓN – AJUSTA ESTAS 3 CONSTANTES
+===================================================== */
+
+// 1) Hoja DATOS (listas desplegables)
+const EXCEL_DATOS_CSV_URL   = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQbc9BI0kRQfyzJW2RnOqwa6cQDLc4F1RcqROVgRIWpLSSyQp0gMVq9txe3kBwu0g/pubhtml";
+
+// 2) Hoja donde se guarda el historial (Power Automate),
+//    publicada también como CSV (opcional para ver auditoría)
+const EXCEL_HISTORIAL_CSV_URL = "PEGA_AQUI_TU_LINK_CSV_HISTORIAL";
+
+// 3) URL del flujo de Power Automate (HTTP request trigger)
+const FLOW_URL = "PEGA_AQUI_TU_URL_DEL_FLUJO";
+
+/* =====================================================
+   UTILIDADES CSV / SELECT
+===================================================== */
+function csvToArray(text){
+  const rows = text.trim().split("\n").map(r => r.split(","));
+  const headers = rows.shift().map(h => h.trim());
+  return rows.map(r => {
+    const o = {};
+    headers.forEach((h,i)=>o[h] = (r[i] || "").trim());
+    return o;
+  });
+}
+function fillSelect(sel, values){
+  sel.innerHTML = '<option value="">Seleccionar...</option>';
+  [...new Set(values.filter(Boolean))].forEach(v=>{
+    const o = document.createElement("option");
+    o.value = v;
+    o.textContent = v;
+    sel.appendChild(o);
+  });
+}
+function setEstado(msg, ok=true){
+  const el = document.getElementById("estado");
+  el.textContent = msg;
+  el.style.color = ok ? "#0a7a20" : "#b00020";
+}
+
+/* =====================================================
+   CARGA LISTAS DESDE EXCEL (DATOS)
+===================================================== */
+let datosDatos = [];
+
+function cargarListasDesdeExcel(){
+  if(!EXCEL_DATOS_CSV_URL || EXCEL_DATOS_CSV_URL.includes("PEGA_AQUI")){
+    console.warn("Falta configurar EXCEL_DATOS_CSV_URL");
+    return;
+  }
+  fetch(EXCEL_DATOS_CSV_URL)
+    .then(r => r.text())
+    .then(t => {
+      datosDatos = csvToArray(t);
+
+      // Ajusta los nombres de columnas a como las tengas en DATOS:
+      // Ejemplo: GRADO, SUMINISTRO, TURNO, GRUPO, CNC_NIVEL_1, CNC_NIVEL_2, RESPONSABLE_CNC
+      fillSelect(document.getElementById("grado"),       datosDatos.map(d=>d.GRADO));
+      fillSelect(document.getElementById("suministro"),  datosDatos.map(d=>d.SUMINISTRO));
+      fillSelect(document.getElementById("turno"),       datosDatos.map(d=>d.TURNO));
+      fillSelect(document.getElementById("grupo"),       datosDatos.map(d=>d.GRUPO));
+      fillSelect(document.getElementById("resp"),        datosDatos.map(d=>d.RESPONSABLE_CNC));
+    })
+    .catch(err => {
+      console.error(err);
+      setEstado("No se pudo leer la hoja DATOS desde Excel Online.", false);
+    });
+}
+
+/* =====================================================
+   CNC ANIDADO DESDE DATOS
+===================================================== */
+const selResp = document.getElementById("resp");
+const selCnc1 = document.getElementById("cnc1");
+const selCnc2 = document.getElementById("cnc2");
+
+selResp.addEventListener("change", ()=>{
+  const filtrado = datosDatos.filter(d => d.RESPONSABLE_CNC === selResp.value);
+  fillSelect(selCnc1, filtrado.map(d=>d.CNC_NIVEL_1));
+  selCnc2.innerHTML = '<option value="">Seleccionar...</option>';
+});
+
+selCnc1.addEventListener("change", ()=>{
+  const filtrado = datosDatos.filter(d =>
+    d.RESPONSABLE_CNC === selResp.value &&
+    d.CNC_NIVEL_1 === selCnc1.value
+  );
+  fillSelect(selCnc2, filtrado.map(d=>d.CNC_NIVEL_2));
+});
+
+/* =====================================================
+   RESUMEN EN TIEMPO REAL
+===================================================== */
+function actualizarResumen(){
+  const g  = grado.value;
+  const t  = turno.value;
+  const gr = grupo.value;
+  const mi = mina.value;
+  const po = postura.value;
+  const r  = resp.value;
+  const c1 = cnc1.value;
+  const c2 = cnc2.value;
+
+  document.getElementById("resumen").innerHTML =
+    `Grado <span>${g || "-"}</span> · Turno <span>${t || "-"}</span> · Grupo <span>${gr || "-"}</span> · `+
+    `Mina <span>${mi || "-"}</span> · Postura <span>${po || "-"}</span><br>` +
+    `CNC <span>${r || "-"}</span> / <span>${c1 || "-"}</span> / <span>${c2 || "-"}</span>`;
+}
+
+document.querySelectorAll("select,input,textarea")
+  .forEach(el => el.addEventListener("change", actualizarResumen));
+
+/* =====================================================
+   GUARDAR EN SHAREPOINT VIA POWER AUTOMATE
+===================================================== */
+function guardarRegistro(){
+  if(!FLOW_URL || FLOW_URL.includes("PEGA_AQUI")){
+    alert("Falta configurar FLOW_URL con la URL del flujo de Power Automate.");
+    return;
+  }
+
+  const payload = {
+    fechaIso:   new Date().toISOString(),
+    usuario:    document.getElementById("usuario").value || "SIN_USUARIO",
+    grado:      grado.value,
+    suministro: suministro.value,
+    turno:      turno.value,
+    grupo:      grupo.value,
+    mina:       mina.value,
+    postura:    postura.value,
+    resp:       resp.value,
+    cnc1:       cnc1.value,
+    cnc2:       cnc2.value,
+    observacion:document.getElementById("obs").value || "",
+    userAgent:  navigator.userAgent
+  };
+
+  // Validación mínima:
+  if(!payload.grado || !payload.suministro || !payload.turno || !payload.grupo){
+    alert("Completa al menos Grado, Suministro, Turno y Grupo antes de guardar.");
+    return;
+  }
+
+  setEstado("Enviando registro a Power Automate…", true);
+
+  fetch(FLOW_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  })
+  .then(r => {
+    if(!r.ok) throw new Error("Estado HTTP: " + r.status);
+    return r.text();
+  })
+  .then(() => {
+    setEstado("Registro guardado correctamente en SharePoint (vía Power Automate).", true);
+    // Opcional: limpiar formulario parcial o total
+    // limpiarFormulario();
+    // Opcional: recargar historial
+    // cargarHistorial();
+  })
+  .catch(err => {
+    console.error(err);
+    setEstado("Error guardando en SharePoint. Revisa el flujo o la URL.", false);
+  });
+}
+
+/* =====================================================
+   LIMPIAR FORMULARIO
+===================================================== */
+function limpiarFormulario(){
+  document.getElementById("grado").value = "";
+  document.getElementById("suministro").value = "";
+  document.getElementById("turno").value = "";
+  document.getElementById("grupo").value = "";
+  document.getElementById("mina").value = "";
+  document.getElementById("postura").value = "";
+  document.getElementById("resp").value = "";
+  selCnc1.innerHTML = '<option value="">Seleccionar...</option>';
+  selCnc2.innerHTML = '<option value="">Seleccionar...</option>';
+  document.getElementById("obs").value = "";
+  actualizarResumen();
+}
+
+/* =====================================================
+   CARGAR HISTORIAL (AUDITORÍA) DESDE EXCEL
+===================================================== */
+function cargarHistorial(){
+  const cont = document.getElementById("historial");
+  if(!EXCEL_HISTORIAL_CSV_URL || EXCEL_HISTORIAL_CSV_URL.includes("PEGA_AQUI")){
+    cont.textContent = "No se configuró EXCEL_HISTORIAL_CSV_URL.";
+    return;
+  }
+  cont.textContent = "Cargando historial desde Excel Online…";
+
+  fetch(EXCEL_HISTORIAL_CSV_URL)
+    .then(r => r.text())
+    .then(t => {
+      const data = csvToArray(t);
+      if(!data.length){
+        cont.textContent = "Sin registros en el historial aún.";
+        return;
+      }
+      let html = "<table><tr>" +
+        "<th>Fecha</th><th>Usuario</th><th>Grado</th><th>Suministro</th>" +
+        "<th>Turno</th><th>Grupo</th><th>Mina</th><th>Postura</th>" +
+        "<th>Responsable</th><th>CNC1</th><th>CNC2</th>" +
+        "</tr>";
+      data.slice(-50).forEach(r=>{
+        html += `<tr>
+          <td>${r.FechaISO || r.fechaIso || ""}</td>
+          <td>${r.Usuario || r.usuario || ""}</td>
+          <td>${r.Grado || r.grado || ""}</td>
+          <td>${r.Suministro || r.suministro || ""}</td>
+          <td>${r.Turno || r.turno || ""}</td>
+          <td>${r.Grupo || r.grupo || ""}</td>
+          <td>${r.Mina || r.mina || ""}</td>
+          <td>${r.Postura || r.postura || ""}</td>
+          <td>${r.ResponsableCNC || r.resp || ""}</td>
+          <td>${r.CNCNivel1 || r.cnc1 || ""}</td>
+          <td>${r.CNCNivel2 || r.cnc2 || ""}</td>
+        </tr>`;
+      });
+      html += "</table>";
+      cont.innerHTML = html;
+    })
+    .catch(err => {
+      console.error(err);
+      cont.textContent = "Error leyendo historial desde Excel Online.";
+    });
+}
+
+/* =====================================================
+   INICIALIZACIÓN
+===================================================== */
+document.addEventListener("DOMContentLoaded", ()=>{
+  cargarListasDesdeExcel();
+  actualizarResumen();
+  // Si quieres que cargue historial al abrir:
+  // cargarHistorial();
+});
+</script>
+
+</body>
+</html>

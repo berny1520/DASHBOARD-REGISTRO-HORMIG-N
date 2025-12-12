@@ -1,0 +1,21 @@
+{
+  "type": "object",
+  "properties": {
+    "fechaIso": { "type": "string" },
+    "usuario": { "type": "string" },
+    "grado": { "type": "string" },
+    "suministro": { "type": "string" },
+    "turno": { "type": "string" },
+    "grupo": { "type": "string" },
+    "mina": { "type": "string" },
+    "postura": { "type": "string" },
+    "resp": { "type": "string" },
+    "cnc1": { "type": "string" },
+    "cnc2": { "type": "string" },
+    "userAgent": { "type": "string" }
+  },
+  "required": [
+    "fechaIso","usuario","grado","suministro","turno",
+    "grupo","mina","postura","resp","cnc1","cnc2"
+  ]
+}
