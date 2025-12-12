@@ -1,7 +1,7 @@
 /*******************************
  * CONFIGURACIÓN
  *******************************/
-const SPREADSHEET_ID   = 'PON_AQUI_EL_ID_DE_TU_SPREADSHEET';  // ej: 1AbCdE...
+const SPREADSHEET_ID   = '1vQbc9BI0kRQfyzJW2RnOqwa6cQDLc4F1RcqROVgRIWpLSSyQp0gMVq9txe3kBwu0g';  // ej: 1AbCdE...
 const SHEET_DATOS      = 'DATOS';     // hoja con listas
 const SHEET_REGISTRO   = 'REGISTRO';  // hoja donde se guarda el historial
 
