@@ -219,7 +219,7 @@ tr:nth-child(even) td{background:#fafafa;}
 ===================================================== */
 
 // URL de tu Web App de Apps Script (la que termina en /exec)
-const SCRIPT_URL = "1vQbc9BI0kRQfyzJW2RnOqwa6cQDLc4F1RcqROVgRIWpLSSyQp0gMVq9txe3kBwu0g"; // <-- REEMPLAZA ESTO
+const SCRIPT_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQbc9BI0kRQfyzJW2RnOqwa6cQDLc4F1RcqROVgRIWpLSSyQp0gMVq9txe3kBwu0g/pubhtml"; // <-- REEMPLAZA ESTO
 
 /* =====================================================
    UTILIDADES
@@ -398,7 +398,7 @@ function limpiarFormulario(){
 function cargarHistorial(){
   const cont = document.getElementById("historial");
 
-  if (!SCRIPT_URL || SCRIPT_URL.includes("PEGAR_AQUI")) {
+  if (!SCRIPT_URL || SCRIPT_URL.includes("https://docs.google.com/spreadsheets/d/e/2PACX-1vQbc9BI0kRQfyzJW2RnOqwa6cQDLc4F1RcqROVgRIWpLSSyQp0gMVq9txe3kBwu0g/pubhtml")) {
     cont.textContent = "Falta configurar SCRIPT_URL para leer el historial.";
     return;
   }
