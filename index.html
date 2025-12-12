@@ -120,7 +120,7 @@ tr:nth-child(even) td{background:#fafafa;}
     <div>
       <h1>Dashboard Hormigón – Sala de Control</h1>
       <div style="font-size:13px;color:#ccc">
-        Excel Online · Power Automate · SharePoint · Auditoría por usuario
+        Google Sheets · Apps Script · Auditoría por usuario
       </div>
     </div>
   </div>
@@ -194,7 +194,7 @@ tr:nth-child(even) td{background:#fafafa;}
     </div>
 
     <div class="btn-bar">
-      <button class="btn-primary" type="button" onclick="guardarRegistro()">💾 Guardar en SharePoint</button>
+      <button class="btn-primary" type="button" onclick="guardarRegistro()">💾 Guardar en Google Sheets</button>
       <button class="btn-secondary" type="button" onclick="limpiarFormulario()">🧹 Limpiar formulario</button>
       <button class="btn-ghost" type="button" onclick="cargarHistorial()">📜 Actualizar historial</button>
     </div>
@@ -208,84 +208,77 @@ tr:nth-child(even) td{background:#fafafa;}
   </div>
 
   <div class="footer">
-    Xtreme Mining · Hormigones · Integración Excel/SharePoint/Power Automate
+    Xtreme Mining · Hormigones · Integración con Google Sheets (DATOS & REGISTRO)
   </div>
 
 </div>
 
 <script>
 /* =====================================================
-   CONFIGURACIÓN – AJUSTA ESTAS 3 CONSTANTES
+   CONFIGURACIÓN – SOLO CAMBIA ESTO
 ===================================================== */
 
-// 1) Hoja DATOS (listas desplegables)
-const EXCEL_DATOS_CSV_URL   = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQbc9BI0kRQfyzJW2RnOqwa6cQDLc4F1RcqROVgRIWpLSSyQp0gMVq9txe3kBwu0g/pubhtml";
-
-// 2) Hoja donde se guarda el historial (Power Automate),
-//    publicada también como CSV (opcional para ver auditoría)
-const EXCEL_HISTORIAL_CSV_URL = "PEGA_AQUI_TU_LINK_CSV_HISTORIAL";
-
-// 3) URL del flujo de Power Automate (HTTP request trigger)
-const FLOW_URL = "PEGA_AQUI_TU_URL_DEL_FLUJO";
+// URL de tu Web App de Apps Script (la que termina en /exec)
+const SCRIPT_URL = "PEGAR_AQUI_LA_URL_DE_TU_WEB_APP"; // <-- REEMPLAZA ESTO
 
 /* =====================================================
-   UTILIDADES CSV / SELECT
+   UTILIDADES
 ===================================================== */
-function csvToArray(text){
-  const rows = text.trim().split("\n").map(r => r.split(","));
-  const headers = rows.shift().map(h => h.trim());
-  return rows.map(r => {
-    const o = {};
-    headers.forEach((h,i)=>o[h] = (r[i] || "").trim());
-    return o;
-  });
-}
-function fillSelect(sel, values){
-  sel.innerHTML = '<option value="">Seleccionar...</option>';
-  [...new Set(values.filter(Boolean))].forEach(v=>{
-    const o = document.createElement("option");
-    o.value = v;
-    o.textContent = v;
-    sel.appendChild(o);
-  });
-}
 function setEstado(msg, ok=true){
   const el = document.getElementById("estado");
   el.textContent = msg;
   el.style.color = ok ? "#0a7a20" : "#b00020";
 }
 
+function fillSelect(sel, values){
+  sel.innerHTML = '<option value="">Seleccionar...</option>';
+  [...new Set(values.filter(v => v !== "" && v != null))].forEach(v=>{
+    const o = document.createElement("option");
+    o.value = v;
+    o.textContent = v;
+    sel.appendChild(o);
+  });
+}
+
 /* =====================================================
-   CARGA LISTAS DESDE EXCEL (DATOS)
+   CARGA LISTAS DESDE HOJA DATOS (Apps Script)
+   Hoja DATOS debe tener columnas:
+   GRADO | SUMINISTRO | TURNO | GRUPO | RESPONSABLE_CNC | CNC_NIVEL_1 | CNC_NIVEL_2
 ===================================================== */
 let datosDatos = [];
 
-function cargarListasDesdeExcel(){
-  if(!EXCEL_DATOS_CSV_URL || EXCEL_DATOS_CSV_URL.includes("PEGA_AQUI")){
-    console.warn("Falta configurar EXCEL_DATOS_CSV_URL");
+function cargarListasDesdeGoogle(){
+  if (!SCRIPT_URL || SCRIPT_URL.includes("PEGAR_AQUI")) {
+    console.warn("Falta configurar SCRIPT_URL con la web app de Apps Script.");
+    setEstado("Falta configurar conexión con Google Sheets (SCRIPT_URL).", false);
     return;
   }
-  fetch(EXCEL_DATOS_CSV_URL)
-    .then(r => r.text())
-    .then(t => {
-      datosDatos = csvToArray(t);
 
-      // Ajusta los nombres de columnas a como las tengas en DATOS:
-      // Ejemplo: GRADO, SUMINISTRO, TURNO, GRUPO, CNC_NIVEL_1, CNC_NIVEL_2, RESPONSABLE_CNC
+  fetch(SCRIPT_URL + "?action=datos")
+    .then(r => {
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    })
+    .then(json => {
+      datosDatos = json.datos || [];
+
       fillSelect(document.getElementById("grado"),       datosDatos.map(d=>d.GRADO));
       fillSelect(document.getElementById("suministro"),  datosDatos.map(d=>d.SUMINISTRO));
       fillSelect(document.getElementById("turno"),       datosDatos.map(d=>d.TURNO));
       fillSelect(document.getElementById("grupo"),       datosDatos.map(d=>d.GRUPO));
       fillSelect(document.getElementById("resp"),        datosDatos.map(d=>d.RESPONSABLE_CNC));
+
+      setEstado("Listas cargadas desde Google Sheets (DATOS).", true);
+      actualizarResumen();
     })
     .catch(err => {
       console.error(err);
-      setEstado("No se pudo leer la hoja DATOS desde Excel Online.", false);
+      setEstado("No se pudo leer la hoja DATOS desde Google Sheets.", false);
     });
 }
 
 /* =====================================================
-   CNC ANIDADO DESDE DATOS
+   CNC ANIDADO
 ===================================================== */
 const selResp = document.getElementById("resp");
 const selCnc1 = document.getElementById("cnc1");
@@ -295,6 +288,7 @@ selResp.addEventListener("change", ()=>{
   const filtrado = datosDatos.filter(d => d.RESPONSABLE_CNC === selResp.value);
   fillSelect(selCnc1, filtrado.map(d=>d.CNC_NIVEL_1));
   selCnc2.innerHTML = '<option value="">Seleccionar...</option>';
+  actualizarResumen();
 });
 
 selCnc1.addEventListener("change", ()=>{
@@ -303,7 +297,10 @@ selCnc1.addEventListener("change", ()=>{
     d.CNC_NIVEL_1 === selCnc1.value
   );
   fillSelect(selCnc2, filtrado.map(d=>d.CNC_NIVEL_2));
+  actualizarResumen();
 });
+
+selCnc2.addEventListener("change", actualizarResumen);
 
 /* =====================================================
    RESUMEN EN TIEMPO REAL
@@ -328,11 +325,11 @@ document.querySelectorAll("select,input,textarea")
   .forEach(el => el.addEventListener("change", actualizarResumen));
 
 /* =====================================================
-   GUARDAR EN SHAREPOINT VIA POWER AUTOMATE
+   GUARDAR EN HOJA REGISTRO (POST)
 ===================================================== */
 function guardarRegistro(){
-  if(!FLOW_URL || FLOW_URL.includes("PEGA_AQUI")){
-    alert("Falta configurar FLOW_URL con la URL del flujo de Power Automate.");
+  if (!SCRIPT_URL || SCRIPT_URL.includes("PEGAR_AQUI")) {
+    alert("Falta configurar SCRIPT_URL con la URL de la Web App de Apps Script.");
     return;
   }
 
@@ -352,33 +349,28 @@ function guardarRegistro(){
     userAgent:  navigator.userAgent
   };
 
-  // Validación mínima:
-  if(!payload.grado || !payload.suministro || !payload.turno || !payload.grupo){
+  if (!payload.grado || !payload.suministro || !payload.turno || !payload.grupo) {
     alert("Completa al menos Grado, Suministro, Turno y Grupo antes de guardar.");
     return;
   }
 
-  setEstado("Enviando registro a Power Automate…", true);
+  setEstado("Enviando registro a Google Sheets (REGISTRO)…", true);
 
-  fetch(FLOW_URL, {
+  fetch(SCRIPT_URL, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {"Content-Type":"application/json"},
     body: JSON.stringify(payload)
   })
   .then(r => {
-    if(!r.ok) throw new Error("Estado HTTP: " + r.status);
-    return r.text();
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    return r.json().catch(()=>({status:"OK"}));
   })
   .then(() => {
-    setEstado("Registro guardado correctamente en SharePoint (vía Power Automate).", true);
-    // Opcional: limpiar formulario parcial o total
-    // limpiarFormulario();
-    // Opcional: recargar historial
-    // cargarHistorial();
+    setEstado("Registro guardado correctamente en la hoja REGISTRO.", true);
   })
   .catch(err => {
     console.error(err);
-    setEstado("Error guardando en SharePoint. Revisa el flujo o la URL.", false);
+    setEstado("Error guardando en Google Sheets. Revisa la Web App.", false);
   });
 }
 
@@ -386,46 +378,55 @@ function guardarRegistro(){
    LIMPIAR FORMULARIO
 ===================================================== */
 function limpiarFormulario(){
-  document.getElementById("grado").value = "";
-  document.getElementById("suministro").value = "";
-  document.getElementById("turno").value = "";
-  document.getElementById("grupo").value = "";
-  document.getElementById("mina").value = "";
-  document.getElementById("postura").value = "";
-  document.getElementById("resp").value = "";
+  grado.value = "";
+  suministro.value = "";
+  turno.value = "";
+  grupo.value = "";
+  mina.value = "";
+  postura.value = "";
+  resp.value = "";
   selCnc1.innerHTML = '<option value="">Seleccionar...</option>';
   selCnc2.innerHTML = '<option value="">Seleccionar...</option>';
   document.getElementById("obs").value = "";
   actualizarResumen();
+  setEstado("Formulario limpio.", true);
 }
 
 /* =====================================================
-   CARGAR HISTORIAL (AUDITORÍA) DESDE EXCEL
+   CARGAR HISTORIAL (GET action=historial)
 ===================================================== */
 function cargarHistorial(){
   const cont = document.getElementById("historial");
-  if(!EXCEL_HISTORIAL_CSV_URL || EXCEL_HISTORIAL_CSV_URL.includes("PEGA_AQUI")){
-    cont.textContent = "No se configuró EXCEL_HISTORIAL_CSV_URL.";
+
+  if (!SCRIPT_URL || SCRIPT_URL.includes("PEGAR_AQUI")) {
+    cont.textContent = "Falta configurar SCRIPT_URL para leer el historial.";
     return;
   }
-  cont.textContent = "Cargando historial desde Excel Online…";
 
-  fetch(EXCEL_HISTORIAL_CSV_URL)
-    .then(r => r.text())
-    .then(t => {
-      const data = csvToArray(t);
-      if(!data.length){
+  cont.textContent = "Cargando historial desde Google Sheets…";
+
+  fetch(SCRIPT_URL + "?action=historial")
+    .then(r => {
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    })
+    .then(json => {
+      const data = json.registros || [];
+      if (!data.length){
         cont.textContent = "Sin registros en el historial aún.";
         return;
       }
+
       let html = "<table><tr>" +
         "<th>Fecha</th><th>Usuario</th><th>Grado</th><th>Suministro</th>" +
         "<th>Turno</th><th>Grupo</th><th>Mina</th><th>Postura</th>" +
-        "<th>Responsable</th><th>CNC1</th><th>CNC2</th>" +
+        "<th>Responsable</th><th>CNC1</th><th>CNC2</th><th>Obs.</th>" +
         "</tr>";
-      data.slice(-50).forEach(r=>{
+
+      data.forEach(r=>{
+        const fecha = r.FechaISO || r.fechaIso || "";
         html += `<tr>
-          <td>${r.FechaISO || r.fechaIso || ""}</td>
+          <td>${fecha}</td>
           <td>${r.Usuario || r.usuario || ""}</td>
           <td>${r.Grado || r.grado || ""}</td>
           <td>${r.Suministro || r.suministro || ""}</td>
@@ -436,6 +437,7 @@ function cargarHistorial(){
           <td>${r.ResponsableCNC || r.resp || ""}</td>
           <td>${r.CNCNivel1 || r.cnc1 || ""}</td>
           <td>${r.CNCNivel2 || r.cnc2 || ""}</td>
+          <td>${r.Observacion || r.observacion || ""}</td>
         </tr>`;
       });
       html += "</table>";
@@ -443,7 +445,7 @@ function cargarHistorial(){
     })
     .catch(err => {
       console.error(err);
-      cont.textContent = "Error leyendo historial desde Excel Online.";
+      cont.textContent = "Error leyendo historial desde Google Sheets.";
     });
 }
 
@@ -451,9 +453,9 @@ function cargarHistorial(){
    INICIALIZACIÓN
 ===================================================== */
 document.addEventListener("DOMContentLoaded", ()=>{
-  cargarListasDesdeExcel();
+  cargarListasDesdeGoogle();
   actualizarResumen();
-  // Si quieres que cargue historial al abrir:
+  // Si quieres que cargue el historial al abrir:
   // cargarHistorial();
 });
 </script>

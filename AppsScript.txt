@@ -1,0 +1,96 @@
+/*******************************
+ * CONFIGURACIÓN
+ *******************************/
+const SPREADSHEET_ID   = 'PON_AQUI_EL_ID_DE_TU_SPREADSHEET';  // ej: 1AbCdE...
+const SHEET_DATOS      = 'DATOS';     // hoja con listas
+const SHEET_REGISTRO   = 'REGISTRO';  // hoja donde se guarda el historial
+
+/*******************************
+ * LECTURA (GET)
+ *******************************/
+function doGet(e) {
+  const action = (e.parameter.action || '').toLowerCase();
+
+  if (action === 'datos') {
+    return handleGetDatos();
+  } else if (action === 'historial') {
+    return handleGetHistorial();
+  }
+
+  return ContentService
+    .createTextOutput(JSON.stringify({ error: 'Acción no válida' }))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+// Devuelve todas las filas de la hoja DATOS como arreglo de objetos
+function handleGetDatos() {
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const sh = ss.getSheetByName(SHEET_DATOS);
+  const values = sh.getDataRange().getValues();
+  const headers = values.shift();
+
+  const datos = values.map(row => {
+    const obj = {};
+    headers.forEach((h, i) => obj[h] = row[i]);
+    return obj;
+  });
+
+  return ContentService
+    .createTextOutput(JSON.stringify({ datos }))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+// Devuelve los últimos registros desde REGISTRO (auditoría)
+function handleGetHistorial() {
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const sh = ss.getSheetByName(SHEET_REGISTRO);
+  const values = sh.getDataRange().getValues();
+  const headers = values.shift();
+
+  const ultimos = values.slice(-100); // últimos 100
+
+  const registros = ultimos.map(row => {
+    const obj = {};
+    headers.forEach((h, i) => obj[h] = row[i]);
+    return obj;
+  });
+
+  return ContentService
+    .createTextOutput(JSON.stringify({ registros }))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+/*******************************
+ * ESCRITURA (POST)
+ *******************************/
+function doPost(e) {
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const sh = ss.getSheetByName(SHEET_REGISTRO);
+
+  const body = e.postData && e.postData.contents ? e.postData.contents : '{}';
+  const data = JSON.parse(body);
+
+  const ahora = new Date();
+
+  // La hoja REGISTRO debe tener estas columnas en el encabezado:
+  // FechaISO | Usuario | Grado | Suministro | Turno | Grupo | Mina | Postura | ResponsableCNC | CNCNivel1 | CNCNivel2 | Observacion | UserAgent
+  sh.appendRow([
+    ahora,
+    data.usuario      || '',
+    data.grado        || '',
+    data.suministro   || '',
+    data.turno        || '',
+    data.grupo        || '',
+    data.mina         || '',
+    data.postura      || '',
+    data.resp         || '',
+    data.cnc1         || '',
+    data.cnc2         || '',
+    data.observacion  || '',
+    data.userAgent    || ''
+  ]);
+
+  return ContentService
+    .createTextOutput(JSON.stringify({ status: 'OK' }))
+    .setMimeType(ContentService.MimeType.JSON);
+}
