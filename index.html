@@ -1,127 +1,360 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<title>Dashboard Hormigón – Sala de Control</title>
+  <meta charset="UTF-8" />
+  <title>Dashboard Hormigón – Sala de Control</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --primary: #d9232d;  /* rojo Xtreme */
+      --primary-soft: #ffe5e7;
+      --dark: #222;
+      --bg: #f2f4f7;
+      --card-bg: #ffffff;
+      --text-main: #222;
+      --text-muted: #777;
+    }
 
-<style>
-:root{
-  --primary:#d9232d;
-  --dark:#222;
-  --bg:#f2f4f7;
-  --card:#ffffff;
-  --muted:#777;
-}
-*{box-sizing:border-box}
-body{
-  margin:0;
-  font-family:Arial,Helvetica,sans-serif;
-  background:var(--bg);
-}
-header{
-  background:var(--dark);
-  color:#fff;
-  padding:12px 28px;
-}
-header .wrap{
-  max-width:1400px;
-  margin:auto;
-  display:flex;
-  align-items:center;
-  gap:16px;
-}
-header img{height:52px}
-.container{
-  max-width:1400px;
-  margin:20px auto;
-  padding:0 14px;
-}
-.card{
-  background:var(--card);
-  border-radius:12px;
-  padding:16px;
-  box-shadow:0 2px 6px rgba(0,0,0,0.08);
-  margin-bottom:18px;
-}
-.card h2{
-  margin:0 0 10px;
-  font-size:18px;
-}
-.form-grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
-  gap:12px 18px;
-}
-label{
-  font-size:11px;
-  font-weight:bold;
-  color:var(--muted);
-  display:block;
-  margin-bottom:4px;
-}
-select,input,textarea{
-  width:100%;
-  padding:6px 8px;
-  border-radius:6px;
-  border:1px solid #cfd3d8;
-  font-size:13px;
-}
-textarea{resize:vertical;min-height:40px;}
-.summary{
-  font-size:13px;
-  margin-top:10px;
-}
-.summary span{
-  color:var(--primary);
-  font-weight:bold;
-}
-.btn-bar{
-  display:flex;
-  flex-wrap:wrap;
-  gap:8px;
-  margin-top:10px;
-}
-button{
-  border:none;
-  border-radius:6px;
-  padding:7px 12px;
-  font-size:13px;
-  cursor:pointer;
-}
-.btn-primary{background:var(--primary);color:#fff;}
-.btn-secondary{background:#555;color:#fff;}
-.btn-ghost{background:#eee;color:#333;}
-table{
-  width:100%;
-  border-collapse:collapse;
-  font-size:12px;
-}
-th,td{
-  padding:4px 6px;
-  border-bottom:1px solid #e1e1e1;
-  white-space:nowrap;
-}
-th{background:#f0f0f0;text-align:left;}
-tr:nth-child(even) td{background:#fafafa;}
-.footer{
-  text-align:center;
-  font-size:12px;
-  color:#999;
-  margin:16px 0 30px;
-}
-.small-note{font-size:12px;color:#666;margin-top:6px}
-</style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--text-main);
+    }
+
+    header {
+      background: var(--dark);
+      color: #fff;
+      padding: 10px 30px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+
+    header > div {
+      max-width: 1500px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+
+    header img {
+      height: 55px;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 22px;
+    }
+
+    header .subtitle {
+      font-size: 13px;
+      color: #ccc;
+      margin-top: 3px;
+    }
+
+    .container {
+      max-width: 1500px;
+      margin: 15px auto 40px;
+      padding: 0 10px 20px;
+    }
+
+    /* Barra de filtros */
+    .filters-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 15px;
+      align-items: center;
+      background: var(--card-bg);
+      padding: 12px 16px;
+      border-radius: 10px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      margin-bottom: 18px;
+      font-size: 13px;
+    }
+    .filters-bar .group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .filters-bar label {
+      font-weight: bold;
+      margin-right: 2px;
+    }
+    .filters-bar input,
+    .filters-bar select {
+      padding: 5px 7px;
+      font-size: 13px;
+      border-radius: 5px;
+      border: 1px solid #d0d4da;
+      min-width: 140px;
+    }
+    .filters-bar button {
+      padding: 6px 11px;
+      font-size: 13px;
+      border-radius: 5px;
+      border: none;
+      cursor: pointer;
+      transition: transform 0.05s ease, box-shadow 0.1s ease;
+    }
+    .filters-bar button:active {
+      transform: translateY(1px);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.2) inset;
+    }
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+    }
+    .btn-secondary {
+      background: #6c757d;
+      color: #fff;
+    }
+    .btn-pdf {
+      background: #d9534f;
+      color: #fff;
+    }
+
+    .filters-bar .right {
+      margin-left: auto;
+      display: flex;
+      gap: 8px;
+    }
+
+    /* KPIs */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .kpi-card {
+      background: var(--card-bg);
+      border-radius: 10px;
+      padding: 10px 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+      position: relative;
+      overflow: hidden;
+    }
+    .kpi-card::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 4px;
+      background: var(--primary);
+    }
+    .kpi-title {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .kpi-value {
+      font-size: 21px;
+      font-weight: bold;
+    }
+    .kpi-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .kpi-extra {
+      font-size: 11px;
+      color: var(--primary);
+      font-weight: bold;
+      position: absolute;
+      right: 10px;
+      top: 8px;
+    }
+
+    /* GRÁFICOS */
+    .charts-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 22px;
+      margin-top: 10px;
+      margin-bottom: 20px;
+    }
+
+    .chart-card {
+      background: var(--card-bg);
+      border-radius: 10px;
+      padding: 16px 18px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      height: 400px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .chart-card.wide {
+      grid-column: 1 / -1;
+      height: 420px;
+    }
+
+    .chart-card h3 {
+      margin: 0 0 12px;
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .chart-card canvas {
+      width: 100% !important;
+      height: calc(100% - 20px) !important;
+    }
+
+    @media (max-width: 950px) {
+      .charts-grid {
+        grid-template-columns: 1fr;
+      }
+      .chart-card,
+      .chart-card.wide {
+        grid-column: 1 / -1;
+        height: 360px;
+      }
+    }
+
+    /* FORMULARIO DE INGRESO */
+    .form-ingreso {
+      background: var(--card-bg);
+      border-radius: 10px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      padding: 12px 16px;
+      margin-bottom: 18px;
+      font-size: 13px;
+    }
+    .form-ingreso-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .form-ingreso-title {
+      font-weight: bold;
+      font-size: 14px;
+      color: var(--text-main);
+    }
+    .form-grid {
+      margin-top: 10px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 8px 12px;
+    }
+    .form-field label {
+      font-size: 11px;
+      font-weight: bold;
+      color: var(--text-muted);
+      display: block;
+      margin-bottom: 2px;
+    }
+    .form-field input,
+    .form-field select,
+    .form-field textarea {
+      width: 100%;
+      padding: 5px 7px;
+      font-size: 12px;
+      border-radius: 5px;
+      border: 1px solid #d0d4da;
+    }
+    .form-field textarea {
+      resize: vertical;
+      min-height: 40px;
+    }
+
+    /* Tabla */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 5px;
+      font-size: 12px;
+      background: var(--card-bg);
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    }
+    th, td {
+      padding: 6px 8px;
+      border-bottom: 1px solid #eee;
+      white-space: nowrap;
+    }
+    th {
+      background: #f4f6f8;
+      text-align: left;
+    }
+    tr:nth-child(even) td {
+      background: #fafafa;
+    }
+    tr:hover td {
+      background: #e9f3ff;
+    }
+
+    /* Botones de acción SVG */
+    .icon-btn {
+      background: transparent;
+      border: none;
+      padding: 2px 4px;
+      cursor: pointer;
+      vertical-align: middle;
+    }
+    .icon-btn svg {
+      width: 16px;
+      height: 16px;
+      stroke-width: 1.7;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      fill: none;
+      display: block;
+    }
+    .icon-btn.edit svg {
+      stroke: #444;
+    }
+    .icon-btn.delete svg {
+      stroke: #b00020;
+    }
+    .icon-btn:focus {
+      outline: none;
+    }
+    .icon-disabled {
+      opacity: 0.3;
+      font-size: 11px;
+      cursor: default;
+    }
+
+    /* Impresión */
+    @media print {
+      body {
+        background: #fff;
+      }
+      header {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      .filters-bar,
+      .form-ingreso {
+        display: none;
+      }
+      button {
+        display: none;
+      }
+      .container {
+        max-width: 100%;
+        margin: 0;
+        padding: 0 5mm;
+      }
+    }
+  </style>
 </head>
-
 <body>
 
 <header>
-  <div class="wrap">
-    <img src="logo_Xtreme.png" alt="Xtreme">
+  <div>
+    <img src="logo_Xtreme.png" alt="Xtreme Mining" />
     <div>
-      <h1 style="margin:0;font-size:22px;">Dashboard Hormigón – Sala de Control</h1>
-      <div style="font-size:13px;color:#ccc">
-        Google Sheets · Apps Script · Auditoría por usuario
+      <h1>Dashboard Hormigón – Sala de Control</h1>
+      <div class="subtitle">
+        Reporte FECHA / TURNO / MINA / LABOR / GRADO
       </div>
     </div>
   </div>
@@ -129,369 +362,1016 @@ tr:nth-child(even) td{background:#fafafa;}
 
 <div class="container">
 
-  <!-- DATOS HORMIGÓN -->
-  <div class="card">
-    <h2>Datos de Hormigón</h2>
-    <div class="form-grid">
-      <div>
-        <label>Grado Hormigón</label>
-        <select id="grado"></select>
-      </div>
-      <div>
-        <label>Suministro</label>
-        <select id="suministro"></select>
-      </div>
-      <div>
-        <label>Turno</label>
-        <select id="turno"></select>
-      </div>
-      <div>
-        <label>Grupo</label>
-        <select id="grupo"></select>
-      </div>
-
-      <div>
-        <label>Mina</label>
-        <select id="mina"></select>
-      </div>
-      <div>
-        <label>Postura</label>
-        <select id="postura"></select>
-      </div>
-
-      <div>
-        <label>Sala de Control</label>
-        <select id="salaControl"></select>
-      </div>
-    </div>
-    <div class="small-note">Tip: “Postura” se carga automáticamente según la “Mina”.</div>
-  </div>
-
-  <!-- CONDICIÓN CNC -->
-  <div class="card">
-    <h2>Condición CNC</h2>
-    <div class="form-grid">
-      <div>
-        <label>Responsable CNC</label>
-        <select id="resp"></select>
-      </div>
-      <div>
-        <label>CNC Nivel 1</label>
-        <select id="cnc1"></select>
-      </div>
-      <div>
-        <label>CNC Nivel 2</label>
-        <select id="cnc2"></select>
-      </div>
-      <div>
-        <label>Observación / Detalle</label>
-        <textarea id="obs" placeholder="Observaciones adicionales"></textarea>
-      </div>
-    </div>
-    <div class="summary" id="resumen"></div>
-  </div>
-
-  <!-- USUARIO + GUARDADO -->
-  <div class="card">
-    <h2>Usuario y guardado</h2>
-    <div class="form-grid">
-      <div>
-        <label>Usuario (nombre o correo)</label>
-        <input id="usuario" placeholder="Ej: ladasme@xtreme.cl">
-      </div>
+  <!-- BARRA DE FILTROS -->
+  <div class="filters-bar">
+    <div class="group">
+      <label for="filtro-mes">Mes:</label>
+      <select id="filtro-mes" onchange="aplicarFiltros()">
+        <option value="TODOS">Todos</option>
+      </select>
     </div>
 
-    <div class="btn-bar">
-      <button class="btn-primary" type="button" onclick="guardarRegistro()">💾 Guardar en Google Sheets</button>
-      <button class="btn-secondary" type="button" onclick="limpiarFormulario()">🧹 Limpiar formulario</button>
-      <button class="btn-ghost" type="button" onclick="cargarHistorial()">📜 Actualizar historial</button>
+    <div class="group">
+      <label for="filtro-labor">Labor/Postura:</label>
+      <select id="filtro-labor" onchange="aplicarFiltros()">
+        <option value="TODOS">Todas</option>
+      </select>
     </div>
-    <div id="estado" style="font-size:12px;color:#555;margin-top:8px;"></div>
+
+    <div class="group">
+      <label for="filtro-mina">Mina:</label>
+      <select id="filtro-mina" onchange="aplicarFiltros()">
+        <option value="TODOS">Todas</option>
+      </select>
+    </div>
+
+    <div class="group">
+      <label for="filtro-grado">Grado:</label>
+      <select id="filtro-grado" onchange="aplicarFiltros()">
+        <option value="TODOS">Todos</option>
+      </select>
+    </div>
+
+    <div class="group">
+      <label for="filtro-turno">Turno:</label>
+      <select id="filtro-turno" onchange="aplicarFiltros()">
+        <option value="TODOS">Todos</option>
+      </select>
+    </div>
+
+    <div class="right">
+      <button class="btn-secondary" onclick="limpiarFiltros()">Limpiar filtros</button>
+      <button class="btn-pdf" onclick="exportarPDF()">Exportar PDF</button>
+    </div>
   </div>
 
-  <!-- HISTORIAL / AUDITORÍA -->
-  <div class="card">
-    <h2>Historial reciente (auditoría)</h2>
-    <div id="historial">Sin datos cargados aún.</div>
+  <!-- KPIs -->
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-title">Total planificado (m³)</div>
+      <div class="kpi-value" id="kpi-planificado">0</div>
+      <div class="kpi-sub">Suma columna PLANIFICADO</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-title">Total suministrado (m³)</div>
+      <div class="kpi-extra" id="kpi-cumplimiento-pct">0%</div>
+      <div class="kpi-value" id="kpi-suministrado">0</div>
+      <div class="kpi-sub">% sobre planificado</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-title">Pendiente (m³)</div>
+      <div class="kpi-value" id="kpi-pendiente">0</div>
+      <div class="kpi-sub">Volumen pendiente</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-title">Rechazado (m³)</div>
+      <div class="kpi-value" id="kpi-rechazado">0</div>
+      <div class="kpi-sub">Volumen rechazado</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-title">Reagendado (m³)</div>
+      <div class="kpi-value" id="kpi-reagendado">0</div>
+      <div class="kpi-sub">Volumen reagendado</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-title">Eliminado (m³)</div>
+      <div class="kpi-value" id="kpi-eliminado">0</div>
+      <div class="kpi-sub">Volumen eliminado</div>
+    </div>
   </div>
 
-  <div class="footer">
-    Xtreme Mining · Hormigones · Integración con Google Sheets (DATOS & HISTORIAL)
+  <!-- GRÁFICOS -->
+  <div class="charts-grid">
+    <div class="chart-card wide">
+      <h3>Volumen por estado (m³)</h3>
+      <canvas id="chartEstadoVolumen"></canvas>
+    </div>
+    <div class="chart-card">
+      <h3>Suministrado por mina (m³)</h3>
+      <canvas id="chartMina"></canvas>
+    </div>
+    <div class="chart-card">
+      <h3>Suministrado por grado (m³)</h3>
+      <canvas id="chartGrado"></canvas>
+    </div>
+    <div class="chart-card">
+      <h3>Suministrado por fecha</h3>
+      <canvas id="chartFecha"></canvas>
+    </div>
   </div>
 
+  <!-- FORMULARIO NUEVO REGISTRO -->
+  <div class="form-ingreso">
+    <div class="form-ingreso-header">
+      <div class="form-ingreso-title">Ingreso de nuevos registros de hormigón</div>
+      <button id="btn-toggle-form" type="button" class="btn-primary">
+        ➕ Agregar nuevo registro
+      </button>
+    </div>
+    <div id="form-ingreso-wrapper" style="display: none; margin-top: 10px;">
+      <form id="form-nuevo-registro">
+        <div class="form-grid">
+          <div class="form-field">
+            <label for="form-fecha">Fecha</label>
+            <input type="date" id="form-fecha" required>
+          </div>
+          <div class="form-field">
+            <label for="form-fechaTurno">Fecha turno</label>
+            <input type="text" id="form-fechaTurno" placeholder="Fecha turno">
+          </div>
+          <div class="form-field">
+            <label for="form-turno">Turno</label>
+            <select id="form-turno">
+              <option value="">Seleccionar...</option>
+              <option value="Día">Día</option>
+              <option value="Noche">Noche</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label for="form-labor">Labor/Postura</label>
+            <select id="form-labor"></select>
+            <input type="text" id="form-labor-otro" placeholder="Escribe labor/postura..." style="display:none;margin-top:6px;">
+          </div>
+          <div class="form-field">
+            <label for="form-mina">Mina</label>
+            <select id="form-mina"></select>
+            <input type="text" id="form-mina-otro" placeholder="Escribe mina..." style="display:none;margin-top:6px;">
+          </div>
+          <div class="form-field">
+            <label for="form-grado">Grado</label>
+            <select id="form-grado"></select>
+            <input type="text" id="form-grado-otro" placeholder="Escribe grado..." style="display:none;margin-top:6px;">
+          </div>
+          <div class="form-field">
+            <label for="form-planificado">Planificado (m³)</label>
+            <input type="number" step="0.1" id="form-planificado">
+          </div>
+          <div class="form-field">
+            <label for="form-suministrado">Suministrado (m³)</label>
+            <input type="number" step="0.1" id="form-suministrado">
+          </div>
+          <div class="form-field">
+            <label for="form-pendiente">Pendiente (m³)</label>
+            <input type="number" step="0.1" id="form-pendiente">
+          </div>
+          <div class="form-field">
+            <label for="form-rechazado">Rechazado (m³)</label>
+            <input type="number" step="0.1" id="form-rechazado">
+          </div>
+          <div class="form-field">
+            <label for="form-reagendado">Reagendado (m³)</label>
+            <input type="number" step="0.1" id="form-reagendado">
+          </div>
+          <div class="form-field">
+            <label for="form-eliminado">Eliminado (m³)</label>
+            <input type="number" step="0.1" id="form-eliminado">
+          </div>
+          <div class="form-field">
+            <label for="form-numeroGuia">N° Guía</label>
+            <input type="text" id="form-numeroGuia">
+          </div>
+          <div class="form-field">
+            <label for="form-horaSalidaPlanta">Hora salida planta</label>
+            <input type="text" id="form-horaSalidaPlanta" placeholder="HH:MM">
+          </div>
+          <div class="form-field">
+            <label for="form-horaLlegadaObra">Hora llegada obra</label>
+            <input type="text" id="form-horaLlegadaObra" placeholder="HH:MM">
+          </div>
+          <div class="form-field">
+            <label for="form-horaInicioDescarga">Hora inicio descarga</label>
+            <input type="text" id="form-horaInicioDescarga" placeholder="HH:MM">
+          </div>
+          <div class="form-field">
+            <label for="form-horaTerminoDescarga">Hora término descarga</label>
+            <input type="text" id="form-horaTerminoDescarga" placeholder="HH:MM">
+          </div>
+          <div class="form-field">
+            <label for="form-observacion">Observación</label>
+            <textarea id="form-observacion"></textarea>
+          </div>
+          <div class="form-field">
+            <label for="form-salaControl">Sala de control</label>
+            <select id="form-salaControl"></select>
+            <input type="text" id="form-salaControl-otro" placeholder="Escribe responsable..." style="display:none;margin-top:6px;">
+          </div>
+          <div class="form-field">
+            <label for="form-mes">Mes</label>
+            <select id="form-mes"></select>
+          </div>
+        </div>
+        <div style="margin-top: 10px; text-align: right;">
+          <button type="submit" id="btn-submit-form" class="btn-primary">Guardar registro</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- TABLA DETALLE -->
+  <table id="tabla-detalle">
+    <thead>
+      <tr>
+        <th>FECHA</th>
+        <th>Fecha turno</th>
+        <th>Turno</th>
+        <th>Labor/Postura</th>
+        <th>Mina</th>
+        <th>Grado</th>
+        <th>Planificado</th>
+        <th>Suministrado</th>
+        <th>Pendiente</th>
+        <th>Rechazado</th>
+        <th>Reagendado</th>
+        <th>Eliminado</th>
+        <th>N° Guía</th>
+        <th>Hora salida planta</th>
+        <th>Hora llegada obra</th>
+        <th>Hora inicio descarga</th>
+        <th>Hora término descarga</th>
+        <th>Observación</th>
+        <th>Sala de control</th>
+        <th>Mes</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
 </div>
 
 <script>
-/* =====================================================
-   CONFIGURACIÓN – SOLO CAMBIA ESTO
-===================================================== */
-// URL de tu Web App de Apps Script (termina en /exec)
-const SCRIPT_URL = "PEGA_AQUI_TU_URL_WEBAPP_EXEC";
 
-/* =====================================================
-   UTILIDADES
-===================================================== */
-function setEstado(msg, ok=true){
-  const el = document.getElementById("estado");
-  el.textContent = msg;
-  el.style.color = ok ? "#0a7a20" : "#b00020";
-}
-
-function fillSelect(sel, values, placeholder="Seleccionar..."){
-  sel.innerHTML = `<option value="">${placeholder}</option>`;
-  const uniq = [...new Set((values||[]).filter(v => v !== "" && v != null))];
-  uniq.forEach(v=>{
-    const o = document.createElement("option");
-    o.value = v;
-    o.textContent = v;
-    sel.appendChild(o);
-  });
-}
-
-/* =====================================================
-   DATA GLOBAL
-===================================================== */
-let DATA = {
-  listas: { grados:[], suministros:[], turnos:[], grupos:[], salaControl:[], minas:[] },
-  cncRows: [],
-  posturasPorMina: {}
-};
-
-/* =====================================================
-   CARGA LISTAS DESDE HOJA DATOS (Apps Script)
-===================================================== */
-const gradoSel = document.getElementById("grado");
-const suministroSel = document.getElementById("suministro");
-const turnoSel = document.getElementById("turno");
-const grupoSel = document.getElementById("grupo");
-const minaSel = document.getElementById("mina");
-const posturaSel = document.getElementById("postura");
-const salaSel = document.getElementById("salaControl");
-
-const respSel = document.getElementById("resp");
-const cnc1Sel = document.getElementById("cnc1");
-const cnc2Sel = document.getElementById("cnc2");
-
-function cargarListasDesdeGoogle(){
-  if (!SCRIPT_URL || SCRIPT_URL.includes("PEGA_AQUI")) {
-    setEstado("Falta configurar conexión (SCRIPT_URL).", false);
-    return;
-  }
-
-  setEstado("Cargando listas desde Google Sheets…", true);
-
-  fetch(SCRIPT_URL + "?action=datos")
-    .then(r => { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
-    .then(json => {
-      DATA = json;
-
-      fillSelect(gradoSel, DATA.listas.grados);
-      fillSelect(suministroSel, DATA.listas.suministros);
-      fillSelect(turnoSel, DATA.listas.turnos);
-      fillSelect(grupoSel, DATA.listas.grupos);
-
-      fillSelect(salaSel, DATA.listas.salaControl, "Seleccionar sala…");
-      fillSelect(minaSel, DATA.listas.minas, "Seleccionar mina…");
-      fillSelect(posturaSel, [], "Seleccionar postura…");
-
-      // CNC: cargar responsables
-      const responsables = (DATA.cncRows || []).map(x => x.RESPONSABLE_CNC).filter(Boolean);
-      fillSelect(respSel, responsables, "Seleccionar responsable…");
-      fillSelect(cnc1Sel, [], "Seleccionar CNC1…");
-      fillSelect(cnc2Sel, [], "Seleccionar CNC2…");
-
-      setEstado("Listas cargadas correctamente desde DATOS.", true);
-      actualizarResumen();
-    })
-    .catch(err => {
-      console.error(err);
-      setEstado("No se pudo leer la hoja DATOS desde Google Sheets.", false);
-    });
-}
-
-/* =====================================================
-   EVENTOS: Mina -> Posturas
-===================================================== */
-minaSel.addEventListener("change", ()=>{
-  const mina = minaSel.value;
-  const posturas = (DATA.posturasPorMina && DATA.posturasPorMina[mina]) ? DATA.posturasPorMina[mina] : [];
-  fillSelect(posturaSel, posturas, "Seleccionar postura…");
-  actualizarResumen();
-});
-posturaSel.addEventListener("change", actualizarResumen);
-
-/* =====================================================
-   EVENTOS: CNC anidado
-===================================================== */
-respSel.addEventListener("change", ()=>{
-  const filtrado = (DATA.cncRows || []).filter(d => d.RESPONSABLE_CNC === respSel.value);
-  fillSelect(cnc1Sel, filtrado.map(d=>d.CNC_NIVEL_1), "Seleccionar CNC1…");
-  fillSelect(cnc2Sel, [], "Seleccionar CNC2…");
-  actualizarResumen();
-});
-
-cnc1Sel.addEventListener("change", ()=>{
-  const filtrado = (DATA.cncRows || []).filter(d =>
-    d.RESPONSABLE_CNC === respSel.value &&
-    d.CNC_NIVEL_1 === cnc1Sel.value
-  );
-  fillSelect(cnc2Sel, filtrado.map(d=>d.CNC_NIVEL_2), "Seleccionar CNC2…");
-  actualizarResumen();
-});
-
-cnc2Sel.addEventListener("change", actualizarResumen);
-
-/* =====================================================
-   RESUMEN
-===================================================== */
-function actualizarResumen(){
-  const g  = gradoSel.value || "-";
-  const t  = turnoSel.value || "-";
-  const gr = grupoSel.value || "-";
-  const mi = minaSel.value || "-";
-  const po = posturaSel.value || "-";
-
-  const r  = respSel.value || "-";
-  const c1 = cnc1Sel.value || "-";
-  const c2 = cnc2Sel.value || "-";
-
-  document.getElementById("resumen").innerHTML =
-    `Grado <span>${g}</span> · Turno <span>${t}</span> · Grupo <span>${gr}</span> · Mina <span>${mi}</span> · Postura <span>${po}</span><br>` +
-    `CNC <span>${r}</span> / <span>${c1}</span> / <span>${c2}</span>`;
-}
-
-document.querySelectorAll("select,input,textarea")
-  .forEach(el => el.addEventListener("change", actualizarResumen));
-
-/* =====================================================
-   GUARDAR (POST)
-===================================================== */
-function guardarRegistro(){
-  const payload = {
-    fechaIso: new Date().toISOString(),
-    usuario: (document.getElementById("usuario").value || "SIN_USUARIO"),
-    grado: gradoSel.value,
-    suministro: suministroSel.value,
-    turno: turnoSel.value,
-    grupo: grupoSel.value,
-    mina: minaSel.value,
-    postura: posturaSel.value,
-    salaControl: salaSel.value,
-    resp: respSel.value,
-    cnc1: cnc1Sel.value,
-    cnc2: cnc2Sel.value,
-    observacion: (document.getElementById("obs").value || ""),
-    userAgent: navigator.userAgent
+  // =========================
+  // LISTAS DESPLEGABLES (catálogo)
+  // =========================
+  const LISTAS_DESPLEGABLES = {
+    grados: [
+      "SH-22,5 NORMAL","SH-22,5 FIBRA","SH-300",
+      "HN-70","HN-30","HN-40","HN-50",
+      "HB-30","HB-40","HB-50",
+      "GN-25","HB-70","GN-65"
+    ],
+    minas: [
+      "ESMERALDA","ESMERALDA_ACARREO","ESMERALDA_PANEL_1","ESMERALDA_PANEL_2",
+      "DIABLO_REGIMIENTO","PACIFICO_SUPERIOR","PILAR_NORTE","PANEL_RENO","RENO",
+      "RRNN","DACITA","PANEL_INVARIANTE",
+      "TENIENTE_6","TENIENTE_7","TENIENTE_8",
+      "ANDESITA","COLÓN","ADIT_71"
+    ],
+    laboresPorMina: {
+      "ESMERALDA": ["C-49 IZ","C-55 IZ","C-25 Z-44 HW","C-25 Z-45 HW","C-49 OP-48"],
+      "ESMERALDA_ACARREO": ["C-23 Z-0"],
+      "ESMERALDA_PANEL_1": ["C-23 Z-42 FW","C-23 Z-42 HW"],
+      "ESMERALDA_PANEL_2": ["C-2 Z-10/9","C-2 Z-5/6"],
+      "PILAR_NORTE": [
+        "C-0 SOC. SUR A Z-10",
+        "Pilar Bz 24-1S (Pto 1)","Soc. Hw 1 (Pto 2)",
+        "Soc. Hw 1 / Acceso Sur Loop (Pto 3)","Acceso Sur Loop (Pto 4)",
+        "Soc. Hw 1 / Loop Norte (Pto 5)",
+        "Loop Fw A (Pto 6)","Loop Fw B (Pto 7)",
+        "CX 1S/2S con Loop 1S (Pto 8)",
+        "Loop Hw / CX Loop 1S/2S (Pto 9)",
+        "Loop Hw / Adit 65 (Pto 10)",
+        "Loop Hw entre P4 y P5 (Pto 11)",
+        "Fr Inv descarga Dacita (Pto 12)",
+        "CAV acceso descarga CH DT (Pto 13)",
+        "Galería curva CH DT (Pto 14)"
+      ],
+      "TENIENTE_6": ["OP-27 UH"],
+      "TENIENTE_7": [
+        "OP-26 Pto 22-A","OP-26 Pto 22-B","OP-26 Pto 24","OP-26 Pto 23",
+        "OP-27 Pto 20-A","OP-27 Pto 20-B",
+        "OP-27 Pto 21-A","OP-27 Pto 21-B","OP-27 Pto 22-A"
+      ],
+      "TENIENTE_8": ["OP 24"],
+      "ANDESITA": ["EDIFICIO 132"],
+      "ADIT_71": ["EST. 1 A SUPERFICIE","EST. 1 A EST. 2","EST. 5 A EST. 4"]
+    },
+    salasControl: ["Carlos Salazar Rodriguez","Martin Arriaza Vidal","Alvaro Coloma Toledo","Marcelo Henriquez Ortiz"],
+    meses: ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"],
+    turnos: ["1","2","A","B","C","Día","Noche"]
   };
 
-  // Validación mínima
-  const required = ["grado","suministro","turno","grupo","mina","postura","resp","cnc1","cnc2"];
-  const missing = required.filter(k => !payload[k]);
-  if (missing.length){
-    alert("Faltan campos obligatorios: " + missing.join(", "));
-    return;
+  function setSelectOptions(selectEl, options, {includeTodos=false, todosLabel="Todos", includeOtro=false} = {}) {
+    if (!selectEl) return;
+    selectEl.innerHTML = "";
+    if (includeTodos) {
+      const opt = document.createElement("option");
+      opt.value = "TODOS";
+      opt.textContent = todosLabel;
+      selectEl.appendChild(opt);
+    }
+    const ph = document.createElement("option");
+    ph.value = "";
+    ph.textContent = "Seleccionar...";
+    selectEl.appendChild(ph);
+
+    (options || []).forEach(v => {
+      const opt = document.createElement("option");
+      opt.value = v;
+      opt.textContent = v;
+      selectEl.appendChild(opt);
+    });
+
+    if (includeOtro) {
+      const opt = document.createElement("option");
+      opt.value = "__OTRO__";
+      opt.textContent = "Otro (escribir)";
+      selectEl.appendChild(opt);
+    }
   }
 
-  setEstado("Enviando registro a Google Sheets…", true);
+  function wireOtro(selectEl, inputEl) {
+    if (!selectEl || !inputEl) return;
+    const update = () => {
+      const isOtro = selectEl.value === "__OTRO__";
+      inputEl.style.display = isOtro ? "block" : "none";
+      if (!isOtro) inputEl.value = "";
+    };
+    selectEl.addEventListener("change", update);
+    update();
+  }
 
-  fetch(SCRIPT_URL, {
-    method: "POST",
-    headers: {"Content-Type":"application/json"},
-    body: JSON.stringify(payload)
-  })
-  .then(r => { if(!r.ok) throw new Error("HTTP " + r.status); return r.json().catch(()=>({status:"OK"})); })
-  .then(() => {
-    setEstado("✅ Registro guardado correctamente.", true);
-    cargarHistorial();
-  })
-  .catch(err => {
-    console.error(err);
-    setEstado("❌ Error guardando. Revisa Deploy/Permisos/Hoja de historial.", false);
+  function inicializarDesplegablesFormulario() {
+    // Mina
+    const selMina = document.getElementById("form-mina");
+    const inpMinaOtro = document.getElementById("form-mina-otro");
+    setSelectOptions(selMina, LISTAS_DESPLEGABLES.minas, {includeOtro:true});
+    wireOtro(selMina, inpMinaOtro);
+
+    // Labor/Postura dependiente
+    const selLabor = document.getElementById("form-labor");
+    const inpLaborOtro = document.getElementById("form-labor-otro");
+    const refreshLabor = () => {
+      const mina = (selMina && selMina.value && selMina.value !== "__OTRO__") ? selMina.value : "";
+      const opts = mina ? (LISTAS_DESPLEGABLES.laboresPorMina[mina] || []) : [];
+      setSelectOptions(selLabor, opts, {includeOtro:true});
+      wireOtro(selLabor, inpLaborOtro);
+    };
+    if (selMina) selMina.addEventListener("change", refreshLabor);
+    refreshLabor();
+
+    // Grado
+    const selGrado = document.getElementById("form-grado");
+    const inpGradoOtro = document.getElementById("form-grado-otro");
+    setSelectOptions(selGrado, LISTAS_DESPLEGABLES.grados, {includeOtro:true});
+    wireOtro(selGrado, inpGradoOtro);
+
+    // Sala de control
+    const selSala = document.getElementById("form-salaControl");
+    const inpSalaOtro = document.getElementById("form-salaControl-otro");
+    setSelectOptions(selSala, LISTAS_DESPLEGABLES.salasControl, {includeOtro:true});
+    wireOtro(selSala, inpSalaOtro);
+
+    // Mes
+    const selMes = document.getElementById("form-mes");
+    setSelectOptions(selMes, LISTAS_DESPLEGABLES.meses, {});
+  }
+
+  function getSelectOrOtro(selectEl, inputEl) {
+    if (!selectEl) return "";
+    if (selectEl.value === "__OTRO__") return (inputEl?.value || "").trim();
+    return (selectEl.value || "").trim();
+  }
+
+  function setSelectValueOrOtro(selectEl, inputEl, value) {
+    if (!selectEl) return;
+    const v = (value || "").toString().trim();
+    const has = [...selectEl.options].some(o => o.value === v);
+    if (has) {
+      selectEl.value = v;
+      if (inputEl) { inputEl.style.display = "none"; inputEl.value = ""; }
+    } else if (v) {
+      selectEl.value = "__OTRO__";
+      if (inputEl) { inputEl.style.display = "block"; inputEl.value = v; }
+    } else {
+      selectEl.value = "";
+      if (inputEl) { inputEl.style.display = "none"; inputEl.value = ""; }
+    }
+  }
+
+
+  // URL correcta de tu hoja publicada como CSV
+  const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQz3J9VJZcs5JbAsW1FUZ5lx8TlMi6z2U30ELO86sECEWx1gCgkvNJ11dUcmajYRQ/pub?gid=217982411&single=true&output=csv";
+
+  let registrosBase = [];
+  let registrosNuevos = [];
+  let registrosActuales = [];
+
+  let chartEstadoVolumen, chartMina, chartGrado, chartFecha;
+
+  let lastCsvRaw = "";
+  const LS_KEY = "hormigon_registros_nuevos";
+
+  let editingId = null; // id del registro nuevo que se está editando
+
+  // Configuración global Chart.js
+  Chart.defaults.maintainAspectRatio = false;
+  Chart.defaults.font.family = "Arial, sans-serif";
+  Chart.defaults.plugins.legend.position = "bottom";
+  Chart.defaults.plugins.legend.labels.usePointStyle = true;
+  Chart.defaults.plugins.legend.labels.pointStyle = "circle";
+
+  document.addEventListener("DOMContentLoaded", () => {
+    cargarRegistrosLocales();
+    cargarDatos(false);
+    iniciarAutoActualizacion();
+    inicializarDesplegablesFormulario();
+    inicializarFormulario();
+    inicializarTablaAcciones();
   });
-}
 
-/* =====================================================
-   LIMPIAR
-===================================================== */
-function limpiarFormulario(){
-  document.getElementById("usuario").value = "";
-  document.getElementById("obs").value = "";
+  function iniciarAutoActualizacion() {
+    const INTERVALO_MS = 60000; // 60 s
+    setInterval(() => {
+      cargarDatos(true);
+    }, INTERVALO_MS);
+  }
 
-  gradoSel.value = "";
-  suministroSel.value = "";
-  turnoSel.value = "";
-  grupoSel.value = "";
-  salaSel.value = "";
+  function getRegistrosCombinados() {
+    return registrosBase.concat(registrosNuevos);
+  }
 
-  minaSel.value = "";
-  fillSelect(posturaSel, [], "Seleccionar postura…");
-
-  respSel.value = "";
-  fillSelect(cnc1Sel, [], "Seleccionar CNC1…");
-  fillSelect(cnc2Sel, [], "Seleccionar CNC2…");
-
-  actualizarResumen();
-  setEstado("Formulario limpio.", true);
-}
-
-/* =====================================================
-   HISTORIAL
-===================================================== */
-function cargarHistorial(){
-  const cont = document.getElementById("historial");
-  cont.textContent = "Cargando historial desde Google Sheets…";
-
-  fetch(SCRIPT_URL + "?action=historial")
-    .then(r => { if(!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
-    .then(json => {
-      const data = json.registros || [];
-      if (!data.length){
-        cont.textContent = "Sin registros en el historial aún.";
+  function cargarRegistrosLocales() {
+    try {
+      const data = localStorage.getItem(LS_KEY);
+      if (!data) {
+        registrosNuevos = [];
         return;
       }
+      const parsed = JSON.parse(data);
+      if (Array.isArray(parsed)) {
+        registrosNuevos = parsed.map((r, i) => ({
+          ...r,
+          origen: r.origen || "nuevo",
+          id: r.id || ("nls-" + i)
+        }));
+      } else {
+        registrosNuevos = [];
+      }
+      console.log("Registros nuevos cargados desde localStorage:", registrosNuevos.length);
+    } catch (e) {
+      console.error("Error leyendo localStorage:", e);
+      registrosNuevos = [];
+    }
+  }
 
-      // Render tabla según encabezados (toma campos más comunes)
-      let html = "<table><tr>" +
-        "<th>Fecha</th><th>Usuario</th><th>Grado</th><th>Suministro</th>" +
-        "<th>Turno</th><th>Grupo</th><th>Mina</th><th>Postura</th>" +
-        "<th>Sala</th><th>Responsable</th><th>CNC1</th><th>CNC2</th><th>Obs.</th>" +
-        "</tr>";
+  function guardarRegistrosLocales() {
+    try {
+      localStorage.setItem(LS_KEY, JSON.stringify(registrosNuevos));
+    } catch (e) {
+      console.error("No se pudieron guardar los registros en localStorage:", e);
+    }
+  }
 
-      data.slice().reverse().slice(0, 50).forEach(r=>{
-        const fecha = r.Fecha || r.FECHA || r.FechaISO || r.fechaIso || "";
-        html += `<tr>
-          <td>${fecha}</td>
-          <td>${r.Usuario || r.usuario || ""}</td>
-          <td>${r.Grado || r.grado || ""}</td>
-          <td>${r.Suministro || r.suministro || ""}</td>
-          <td>${r.Turno || r.turno || ""}</td>
-          <td>${r.Grupo || r.grupo || ""}</td>
-          <td>${r.Mina || r.mina || ""}</td>
-          <td>${r.Postura || r.postura || ""}</td>
-          <td>${r.SalaControl || r.salaControl || ""}</td>
-          <td>${r.ResponsableCNC || r.resp || ""}</td>
-          <td>${r.CNCNivel1 || r.cnc1 || ""}</td>
-          <td>${r.CNCNivel2 || r.cnc2 || ""}</td>
-          <td>${r.Observacion || r.observacion || ""}</td>
-        </tr>`;
+  // Parser CSV simple con comillas
+  function parseCSV(text) {
+    const rows = [];
+    let current = [];
+    let value = "";
+    let insideQuotes = false;
+
+    for (let i = 0; i < text.length; i++) {
+      const ch = text[i];
+      const next = text[i + 1];
+
+      if (insideQuotes) {
+        if (ch === '"' && next === '"') {
+          value += '"';
+          i++;
+        } else if (ch === '"') {
+          insideQuotes = false;
+        } else {
+          value += ch;
+        }
+      } else {
+        if (ch === '"') {
+          insideQuotes = true;
+        } else if (ch === ",") {
+          current.push(value);
+          value = "";
+        } else if (ch === "\r") {
+          // nada
+        } else if (ch === "\n") {
+          current.push(value);
+          rows.push(current);
+          current = [];
+          value = "";
+        } else {
+          value += ch;
+        }
+      }
+    }
+    if (value.length > 0 || current.length > 0) {
+      current.push(value);
+      rows.push(current);
+    }
+    return rows;
+  }
+
+  async function cargarDatos(desdeAuto = false) {
+    try {
+      const res  = await fetch(CSV_URL);
+      const text = await res.text();
+
+      if (desdeAuto && text === lastCsvRaw) {
+        console.log("Sin cambios en la base, no se actualiza el dashboard.");
+        return;
+      }
+      lastCsvRaw = text;
+
+      const rows = parseCSV(text);
+      if (!rows.length) return;
+
+      const dataRows = rows.filter((c, i) => {
+        if (i === 0) return false; // encabezados
+        if (!c[0]) return false;   // sin FECHA
+        if (c[0].toString().toUpperCase() === "FECHA") return false;
+        return true;
       });
 
-      html += "</table>";
-      cont.innerHTML = html;
-    })
-    .catch(err => {
-      console.error(err);
-      cont.textContent = "Error leyendo historial desde Google Sheets.";
-    });
-}
+      registrosBase = dataRows.map((c, index) => ({
+        id: "b-" + index,
+        origen: "base",
+        fecha:              c[0]  || "",
+        fechaTurno:         c[1]  || "",
+        turno:              c[2]  || "",
+        labor:              c[3]  || "",
+        mina:               c[4]  || "",
+        grado:              c[5]  || "",
+        planificado:        Number(c[6]  || 0),
+        suministrado:       Number(c[7]  || 0),
+        pendiente:          Number(c[8]  || 0),
+        rechazado:          Number(c[9]  || 0),
+        reagendado:         Number(c[10] || 0),
+        eliminado:          Number(c[11] || 0),
+        numeroGuia:         c[12] || "",
+        horaSalidaPlanta:   c[13] || "",
+        horaLlegadaObra:    c[14] || "",
+        horaInicioDescarga: c[15] || "",
+        horaTerminoDescarga:c[16] || "",
+        observacion:        c[17] || "",
+        salaControl:        c[18] || "",
+        mes:                c[19] || ""
+      }));
 
-/* =====================================================
-   INIT
-===================================================== */
-document.addEventListener("DOMContentLoaded", ()=>{
-  cargarListasDesdeGoogle();
-  actualizarResumen();
-});
+      console.log(
+        desdeAuto
+          ? "Registros recargados automáticamente: " + registrosBase.length
+          : "Registros cargados: " + registrosBase.length
+      );
+
+      const combinados = getRegistrosCombinados();
+      poblarFiltros(combinados);
+      aplicarFiltros();
+
+    } catch (err) {
+      console.error("Error cargando datos:", err);
+      if (!desdeAuto) {
+        alert("No se pudo leer la base desde el CSV.");
+      }
+    }
+  }
+
+  function poblarFiltros(reg) {
+    const selMes   = document.getElementById("filtro-mes");
+    const selLabor = document.getElementById("filtro-labor");
+    const selMina  = document.getElementById("filtro-mina");
+    const selGrado = document.getElementById("filtro-grado");
+    const selTurno = document.getElementById("filtro-turno");
+
+    const keep = (sel) => sel.value || "TODOS";
+    const vMes   = keep(selMes);
+    const vLabor = keep(selLabor);
+    const vMina  = keep(selMina);
+    const vGrado = keep(selGrado);
+    const vTurno = keep(selTurno);
+
+    function llenarSelect(select, valores, labelTodos) {
+      const actual = select.value || "TODOS";
+      select.innerHTML = `<option value="TODOS">${labelTodos}</option>`;
+      Array.from(new Set(valores))
+        .filter(v => v && v.trim() !== "")
+        .sort()
+        .forEach(v => {
+          const opt = document.createElement("option");
+          opt.value = v;
+          opt.textContent = v;
+          select.appendChild(opt);
+        });
+      if ([...select.options].some(o => o.value === actual)) {
+        select.value = actual;
+      }
+    }
+
+    llenarSelect(selMes,   reg.map(r => r.mes),   "Todos");
+    llenarSelect(selLabor, reg.map(r => r.labor), "Todas");
+    llenarSelect(selMina,  reg.map(r => r.mina),  "Todas");
+    llenarSelect(selGrado, reg.map(r => r.grado), "Todos");
+    llenarSelect(selTurno, reg.map(r => r.turno),"Todos");
+
+    selMes.value   = vMes;
+    selLabor.value = vLabor;
+    selMina.value  = vMina;
+    selGrado.value = vGrado;
+    selTurno.value = vTurno;
+  }
+
+  function aplicarFiltros() {
+    const todos = getRegistrosCombinados();
+    if (!todos.length) return;
+
+    const mesSel   = document.getElementById("filtro-mes").value;
+    const laborSel = document.getElementById("filtro-labor").value;
+    const minaSel  = document.getElementById("filtro-mina").value;
+    const gradoSel = document.getElementById("filtro-grado").value;
+    const turnoSel = document.getElementById("filtro-turno").value;
+
+    let datos = todos.slice();
+
+    if (mesSel !== "TODOS") {
+      datos = datos.filter(r => r.mes === mesSel);
+    }
+    if (laborSel !== "TODOS") {
+      datos = datos.filter(r => r.labor === laborSel);
+    }
+    if (minaSel !== "TODOS") {
+      datos = datos.filter(r => r.mina === minaSel);
+    }
+    if (gradoSel !== "TODOS") {
+      datos = datos.filter(r => r.grado === gradoSel);
+    }
+    if (turnoSel !== "TODOS") {
+      datos = datos.filter(r => r.turno === turnoSel);
+    }
+
+    registrosActuales = datos;
+
+    actualizarKPIs(registrosActuales);
+    dibujarTabla(registrosActuales);
+    dibujarGraficos(registrosActuales);
+  }
+
+  function limpiarFiltros() {
+    document.getElementById("filtro-mes").value   = "TODOS";
+    document.getElementById("filtro-labor").value = "TODOS";
+    document.getElementById("filtro-mina").value  = "TODOS";
+    document.getElementById("filtro-grado").value = "TODOS";
+    document.getElementById("filtro-turno").value = "TODOS";
+    aplicarFiltros();
+  }
+
+  function exportarPDF() {
+    window.print();
+  }
+
+  function actualizarKPIs(reg) {
+    const sum = (campo) => reg.reduce((s, r) => s + (r[campo] || 0), 0);
+
+    const planificado  = sum("planificado");
+    const suministrado = sum("suministrado");
+    const pendiente    = sum("pendiente");
+    const rechazado    = sum("rechazado");
+    const reagendado   = sum("reagendado");
+    const eliminado    = sum("eliminado");
+
+    const pct = planificado ? ((suministrado / planificado) * 100).toFixed(1) + "%" : "0%";
+
+    document.getElementById("kpi-planificado").textContent   = planificado.toFixed(1);
+    document.getElementById("kpi-suministrado").textContent  = suministrado.toFixed(1);
+    document.getElementById("kpi-pendiente").textContent     = pendiente.toFixed(1);
+    document.getElementById("kpi-rechazado").textContent     = rechazado.toFixed(1);
+    document.getElementById("kpi-reagendado").textContent    = reagendado.toFixed(1);
+    document.getElementById("kpi-eliminado").textContent     = eliminado.toFixed(1);
+    document.getElementById("kpi-cumplimiento-pct").textContent = pct;
+  }
+
+  function dibujarTabla(reg) {
+    const tbody = document.querySelector("#tabla-detalle tbody");
+    tbody.innerHTML = "";
+    reg.forEach(r => {
+      const accionesHtml =
+        r.origen === "nuevo"
+          ? `
+        <button class="icon-btn edit" data-action="edit" data-id="${r.id}" title="Editar">
+          <svg viewBox="0 0 24 24">
+            <path d="M4 20h4l10.5-10.5-4-4L4 16v4z"></path>
+            <path d="M14.5 5.5l4 4"></path>
+          </svg>
+        </button>
+        <button class="icon-btn delete" data-action="delete" data-id="${r.id}" title="Eliminar">
+          <svg viewBox="0 0 24 24">
+            <path d="M6 7h12"></path>
+            <path d="M9 7V5h6v2"></path>
+            <path d="M10 11v6"></path>
+            <path d="M14 11v6"></path>
+            <rect x="6" y="7" width="12" height="12" rx="1"></rect>
+          </svg>
+        </button>`
+          : `<span class="icon-disabled" title="Registro origen Excel">●</span>`;
+
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${r.fecha}</td>
+        <td>${r.fechaTurno}</td>
+        <td>${r.turno}</td>
+        <td>${r.labor}</td>
+        <td>${r.mina}</td>
+        <td>${r.grado}</td>
+        <td>${r.planificado}</td>
+        <td>${r.suministrado}</td>
+        <td>${r.pendiente}</td>
+        <td>${r.rechazado}</td>
+        <td>${r.reagendado}</td>
+        <td>${r.eliminado}</td>
+        <td>${r.numeroGuia}</td>
+        <td>${r.horaSalidaPlanta}</td>
+        <td>${r.horaLlegadaObra}</td>
+        <td>${r.horaInicioDescarga}</td>
+        <td>${r.horaTerminoDescarga}</td>
+        <td>${r.observacion}</td>
+        <td>${r.salaControl}</td>
+        <td>${r.mes}</td>
+        <td>${accionesHtml}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function agruparSuma(reg, clave, campoSuma) {
+    const map = {};
+    reg.forEach(r => {
+      const key = r[clave] || "Sin dato";
+      if (!map[key]) map[key] = 0;
+      map[key] += (r[campoSuma] || 0);
+    });
+    const labels = Object.keys(map);
+    const values = labels.map(l => map[l]);
+    return { labels, values };
+  }
+
+  function dibujarGraficos(reg) {
+    const palette = {
+      primary: "#d9232d",
+      primaryLight: "#f7c1c4",
+      blue: "#3498db",
+      blueLight: "#d6e9f8",
+      orange: "#f5a623",
+      green: "#2ecc71"
+    };
+
+    const sum = (campo) => reg.reduce((s, r) => s + (r[campo] || 0), 0);
+    const volEstados = {
+      labels: ["Planificado", "Suministrado", "Pendiente", "Rechazado", "Reagendado", "Eliminado"],
+      values: [
+        sum("planificado"),
+        sum("suministrado"),
+        sum("pendiente"),
+        sum("rechazado"),
+        sum("reagendado"),
+        sum("eliminado")
+      ]
+    };
+
+    const porMina  = agruparSuma(reg, "mina",  "suministrado");
+    const porGrado = agruparSuma(reg, "grado", "suministrado");
+    const porFecha = agruparSuma(reg, "fecha", "suministrado");
+
+    const ctxEstadoVolumen = document.getElementById("chartEstadoVolumen").getContext("2d");
+    const ctxMina          = document.getElementById("chartMina").getContext("2d");
+    const ctxGrado         = document.getElementById("chartGrado").getContext("2d");
+    const ctxFecha         = document.getElementById("chartFecha").getContext("2d");
+
+    if (chartEstadoVolumen) chartEstadoVolumen.destroy();
+    if (chartMina)          chartMina.destroy();
+    if (chartGrado)         chartGrado.destroy();
+    if (chartFecha)         chartFecha.destroy();
+
+    chartEstadoVolumen = new Chart(ctxEstadoVolumen, {
+      type: "bar",
+      data: {
+        labels: volEstados.labels,
+        datasets: [{
+          label: "m³",
+          data: volEstados.values,
+          backgroundColor: palette.blueLight,
+          borderColor: palette.blue,
+          borderWidth: 2
+        }]
+      },
+      options: {
+        scales: {
+          y: { beginAtZero: true }
+        }
+      }
+    });
+
+    chartMina = new Chart(ctxMina, {
+      type: "bar",
+      data: {
+        labels: porMina.labels,
+        datasets: [{
+          label: "m³ suministrado",
+          data: porMina.values,
+          backgroundColor: palette.primarySoft,
+          borderColor: palette.primary,
+          borderWidth: 2
+        }]
+      },
+      options: {
+        scales: {
+          x: { ticks: { maxRotation: 45, minRotation: 45 } },
+          y: { beginAtZero: true }
+        }
+      }
+    });
+
+    chartGrado = new Chart(ctxGrado, {
+      type: "bar",
+      data: {
+        labels: porGrado.labels,
+        datasets: [{
+          label: "m³ suministrado",
+          data: porGrado.values,
+          backgroundColor: palette.green,
+          borderColor: "#1e874b",
+          borderWidth: 2
+        }]
+      },
+      options: {
+        scales: {
+          x: { ticks: { maxRotation: 45, minRotation: 45 } },
+          y: { beginAtZero: true }
+        }
+      }
+    });
+
+    chartFecha = new Chart(ctxFecha, {
+      type: "line",
+      data: {
+        labels: porFecha.labels,
+        datasets: [{
+          label: "m³ suministrado",
+          data: porFecha.values,
+          borderColor: palette.blue,
+          backgroundColor: palette.blueLight,
+          borderWidth: 2,
+          tension: 0.3,
+          fill: true
+        }]
+      },
+      options: {
+        scales: {
+          y: { beginAtZero: true }
+        }
+      }
+    });
+  }
+
+  function inicializarFormulario() {
+    const btnToggle = document.getElementById("btn-toggle-form");
+    const wrapper = document.getElementById("form-ingreso-wrapper");
+    const form = document.getElementById("form-nuevo-registro");
+    const btnSubmit = document.getElementById("btn-submit-form");
+
+    if (!btnToggle || !wrapper || !form || !btnSubmit) return;
+
+    wrapper.style.display = "none";
+
+    btnToggle.addEventListener("click", () => {
+      const visible = wrapper.style.display !== "none";
+      wrapper.style.display = visible ? "none" : "block";
+      btnToggle.textContent = visible ? "➕ Agregar nuevo registro" : "✖ Cerrar formulario";
+      if (!visible) {
+        editingId = null;
+        btnSubmit.textContent = "Guardar registro";
+        form.reset();
+      }
+    });
+
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+
+      const nuevo = {
+        fecha:              document.getElementById("form-fecha").value || "",
+        fechaTurno:         document.getElementById("form-fechaTurno").value || "",
+        turno:              document.getElementById("form-turno").value || "",
+        labor: getSelectOrOtro(document.getElementById("form-labor"), document.getElementById("form-labor-otro")) || "",
+        mina: getSelectOrOtro(document.getElementById("form-mina"), document.getElementById("form-mina-otro")) || "",
+        grado: getSelectOrOtro(document.getElementById("form-grado"), document.getElementById("form-grado-otro")) || "",
+        planificado:        Number(document.getElementById("form-planificado").value || 0),
+        suministrado:       Number(document.getElementById("form-suministrado").value || 0),
+        pendiente:          Number(document.getElementById("form-pendiente").value || 0),
+        rechazado:          Number(document.getElementById("form-rechazado").value || 0),
+        reagendado:         Number(document.getElementById("form-reagendado").value || 0),
+        eliminado:          Number(document.getElementById("form-eliminado").value || 0),
+        numeroGuia:         document.getElementById("form-numeroGuia").value || "",
+        horaSalidaPlanta:   document.getElementById("form-horaSalidaPlanta").value || "",
+        horaLlegadaObra:    document.getElementById("form-horaLlegadaObra").value || "",
+        horaInicioDescarga: document.getElementById("form-horaInicioDescarga").value || "",
+        horaTerminoDescarga:document.getElementById("form-horaTerminoDescarga").value || "",
+        observacion:        document.getElementById("form-observacion").value || "",
+        salaControl: getSelectOrOtro(document.getElementById("form-salaControl"), document.getElementById("form-salaControl-otro")) || "",
+        mes: document.getElementById("form-mes").value || ""
+      };
+
+      if (editingId) {
+        const idx = registrosNuevos.findIndex(r => r.id === editingId);
+        if (idx !== -1) {
+          registrosNuevos[idx] = {
+            ...registrosNuevos[idx],
+            ...nuevo
+          };
+        }
+        editingId = null;
+        btnSubmit.textContent = "Guardar registro";
+      } else {
+        nuevo.id = "n-" + Date.now() + "-" + Math.random().toString(36).slice(2, 7);
+        nuevo.origen = "nuevo";
+        registrosNuevos.push(nuevo);
+      }
+
+      guardarRegistrosLocales();
+      aplicarFiltros();
+      form.reset();
+    });
+  }
+
+  function inicializarTablaAcciones() {
+    const tbody = document.querySelector("#tabla-detalle tbody");
+    if (!tbody) return;
+
+    tbody.addEventListener("click", (e) => {
+      const btn = e.target.closest("button.icon-btn");
+      if (!btn) return;
+      const id = btn.getAttribute("data-id");
+      const action = btn.getAttribute("data-action");
+      if (!id || !action) return;
+
+      if (action === "edit") {
+        iniciarEdicion(id);
+      } else if (action === "delete") {
+        eliminarRegistro(id);
+      }
+    });
+  }
+
+  function iniciarEdicion(id) {
+    const reg = registrosNuevos.find(r => r.id === id);
+    if (!reg) {
+      alert("Solo se pueden editar registros ingresados desde este formulario (no los de Excel).");
+      return;
+    }
+
+    editingId = id;
+
+    document.getElementById("form-fecha").value              = reg.fecha || "";
+    document.getElementById("form-fechaTurno").value         = reg.fechaTurno || "";
+    document.getElementById("form-turno").value              = reg.turno || "";
+    setSelectValueOrOtro(document.getElementById("form-labor"), document.getElementById("form-labor-otro"), reg.labor);
+setSelectValueOrOtro(document.getElementById("form-mina"), document.getElementById("form-mina-otro"), reg.mina);
+    // refresca labor según mina
+    const selM = document.getElementById("form-mina");
+    if (selM) selM.dispatchEvent(new Event("change"));
+setSelectValueOrOtro(document.getElementById("form-grado"), document.getElementById("form-grado-otro"), reg.grado);
+document.getElementById("form-planificado").value        = reg.planificado || "";
+    document.getElementById("form-suministrado").value       = reg.suministrado || "";
+    document.getElementById("form-pendiente").value          = reg.pendiente || "";
+    document.getElementById("form-rechazado").value          = reg.rechazado || "";
+    document.getElementById("form-reagendado").value         = reg.reagendado || "";
+    document.getElementById("form-eliminado").value          = reg.eliminado || "";
+    document.getElementById("form-numeroGuia").value         = reg.numeroGuia || "";
+    document.getElementById("form-horaSalidaPlanta").value   = reg.horaSalidaPlanta || "";
+    document.getElementById("form-horaLlegadaObra").value    = reg.horaLlegadaObra || "";
+    document.getElementById("form-horaInicioDescarga").value = reg.horaInicioDescarga || "";
+    document.getElementById("form-horaTerminoDescarga").value= reg.horaTerminoDescarga || "";
+    document.getElementById("form-observacion").value        = reg.observacion || "";
+    setSelectValueOrOtro(document.getElementById("form-salaControl"), document.getElementById("form-salaControl-otro"), reg.salaControl);
+document.getElementById("form-mes").value = reg.mes || "";
+const wrapper = document.getElementById("form-ingreso-wrapper");
+    const btnToggle = document.getElementById("btn-toggle-form");
+    const btnSubmit = document.getElementById("btn-submit-form");
+
+    if (wrapper && btnToggle) {
+      wrapper.style.display = "block";
+      btnToggle.textContent = "✖ Cerrar formulario";
+    }
+    if (btnSubmit) {
+      btnSubmit.textContent = "💾 Guardar cambios";
+    }
+  }
+
+  function eliminarRegistro(id) {
+    const idx = registrosNuevos.findIndex(r => r.id === id);
+    if (idx === -1) {
+      alert("Solo se pueden eliminar registros ingresados desde este formulario (no los de Excel).");
+      return;
+    }
+    if (!confirm("¿Eliminar este registro ingresado manualmente?")) return;
+
+    registrosNuevos.splice(idx, 1);
+    guardarRegistrosLocales();
+    aplicarFiltros();
+  }
 </script>
 
 </body>
