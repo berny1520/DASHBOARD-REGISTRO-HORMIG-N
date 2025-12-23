@@ -344,7 +344,11 @@
         padding: 0 5mm;
       }
     }
-  </style>
+  
+    .grid-charts canvas { width:100% !important; height:320px !important; }
+</style>
+  <!-- SheetJS para exportar a Excel (.xlsx) -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
 <body>
 
@@ -780,6 +784,34 @@
     inicializarDesplegablesFormulario();
     inicializarFormulario();
     inicializarTablaAcciones();
+    // Exportar a Excel (XLSX)
+    const btnXlsx = document.getElementById("btnExportXLSX");
+    if (btnXlsx) btnXlsx.addEventListener("click", () => {
+      const reg = aplicarFiltros();
+      exportarExcel(reg, "Reporte_Hormigon_filtrado.xlsx");
+    });
+
+    const btnPlant = document.getElementById("btnPlantillaXLSX");
+    if (btnPlant) btnPlant.addEventListener("click", () => {
+      descargarPlantillaExcel();
+    });
+
+    // Rango de fechas rápido
+    const btnSem = document.getElementById("btnRangoSemana");
+    const btnMes = document.getElementById("btnRangoMes");
+    const btnTodo = document.getElementById("btnRangoTodo");
+
+    function setRango(dias) {
+      const hoy = new Date();
+      const to = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate()); // 00:00
+      const from = new Date(to.getTime() - dias*24*60*60*1000);
+      rangoFecha = { from, to: new Date(to.getTime() + 24*60*60*1000 - 1) }; // fin del día
+      refrescarVista();
+    }
+    if (btnSem) btnSem.addEventListener("click", () => setRango(7));
+    if (btnMes) btnMes.addEventListener("click", () => setRango(30));
+    if (btnTodo) btnTodo.addEventListener("click", () => { rangoFecha = null; refrescarVista(); });
+
   });
 
   function iniciarAutoActualizacion() {
@@ -1099,6 +1131,28 @@
     });
   }
 
+  function ordenarPorValor(labels, values, {order="desc", limit=null} = {}) {
+    const pairs = labels.map((l, i) => ({ l, v: values[i] || 0 }));
+    pairs.sort((a,b) => order === "asc" ? a.v - b.v : b.v - a.v);
+    const sliced = limit ? pairs.slice(0, limit) : pairs;
+    return { labels: sliced.map(p => p.l), values: sliced.map(p => p.v) };
+  }
+
+  function ordenarPorFecha(labels, values, {order="asc", limit=null} = {}) {
+    const pairs = labels.map((l, i) => ({ l, v: values[i] || 0 }));
+    // espera formato YYYY-MM-DD; si no, lo deja al final
+    pairs.sort((a,b) => {
+      const da = Date.parse(a.l);
+      const db = Date.parse(b.l);
+      if (isNaN(da) && isNaN(db)) return 0;
+      if (isNaN(da)) return 1;
+      if (isNaN(db)) return -1;
+      return order === "asc" ? da - db : db - da;
+    });
+    const sliced = limit ? pairs.slice(Math.max(0, pairs.length - limit)) : pairs; // últimos N si hay limit
+    return { labels: sliced.map(p => p.l), values: sliced.map(p => p.v) };
+  }
+
   function agruparSuma(reg, clave, campoSuma) {
     const map = {};
     reg.forEach(r => {
@@ -1134,9 +1188,15 @@
       ]
     };
 
-    const porMina  = agruparSuma(reg, "mina",  "suministrado");
-    const porGrado = agruparSuma(reg, "grado", "suministrado");
-    const porFecha = agruparSuma(reg, "fecha", "suministrado");
+    let porMina  = agruparSuma(reg, "mina",  "suministrado");
+    let porGrado = agruparSuma(reg, "grado", "suministrado");
+    let porFecha = agruparSuma(reg, "fecha", "suministrado");
+
+    // Orden y límites para que los gráficos se vean claros
+    porMina  = ordenarPorValor(porMina.labels,  porMina.values,  {order:"desc", limit: 10});
+    porGrado = ordenarPorValor(porGrado.labels, porGrado.values, {order:"desc", limit: 10});
+    porFecha = ordenarPorFecha(porFecha.labels, porFecha.values, {order:"asc",  limit: 21}); // últimos 21 días
+
 
     const ctxEstadoVolumen = document.getElementById("chartEstadoVolumen").getContext("2d");
     const ctxMina          = document.getElementById("chartMina").getContext("2d");
