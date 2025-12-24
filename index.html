@@ -1439,5 +1439,110 @@ const wrapper = document.getElementById("form-ingreso-wrapper");
   }
 </script>
 
+
+<script>
+/** === Catálogos (desplegables) Hormigón === **/
+const CATALOGOS_HORMIGON = {"GRADO": ["SH-22,5 NORMAL", "SH-22,5 FIBRA", "SH-300", "HN-70", "HN-30", "HN-40", "HN-50", "HB-30", "HB-40", "HB-50", "GN-25", "HB-70", "GN-65"], "SUMINISTRO": ["En Planta", "En Obra"], "TURNO": ["1", "2", "A", "B", "C"], "GRUPO": ["Grupo_1", "Grupo_2", "Grupo_3", "Grupo_4"], "SALA_CONTROL": ["Carlos Salazar Rodriguez", "Martin Arriaza Vidal", "Alvaro Coloma Toledo", "Marcelo Henriquez Ortiz"], "MINA": ["ESMERALDA", "ESMERALDA_ACARREO", "ESMERALDA_PANEL_1", "ESMERALDA_PANEL_2", "DIABLO_REGIMIENTO", "PACIFICO_SUPERIOR", "PILAR_NORTE", "PANEL_RENO", "RENO", "RRNN", "DACITA", "PANEL_INVARIANTE", "TENIENTE_6", "TENIENTE_7", "TENIENTE_8", "ANDESITA", "COLÓN", "ADIT_71"], "LABOR_POR_MINA": {"ESMERALDA": ["C-49 IZ", "C-55 IZ", "C-25 Z-45 HW", "C-49 OP-48"], "ESMERALDA_ACARREO": ["C-23 Z-0"], "ESMERALDA_PANEL_1": ["C-23 Z-42 FW", "C-23 Z-42 HW"], "ESMERALDA_PANEL_2": ["C-2 Z-10/9", "C-2 Z-5/6"], "DIABLO_REGIMIENTO": [], "PACIFICO_SUPERIOR": [], "PILAR_NORTE": [], "PANEL_RENO": [], "RENO": [], "RRNN": [], "DACITA": ["Fr Inv descarga Dacita (Pto 12)"], "PANEL_INVARIANTE": [], "TENIENTE_6": ["OP-27 UH", "OP-26 Pto 22-A", "OP-26 Pto 22-B", "OP-26 Pto 24", "OP-26 Pto 23", "OP-27 Pto 20-A", "OP-27 Pto 20-B", "OP-27 Pto 21-A", "OP-27 Pto 21-B", "OP-27 Pto 22-A", "Pilar Bz 24-1S (Pto 1)", "Soc. Hw 1 (Pto 2)", "Soc. Hw 1 / Acceso Sur Loop (Pto 3)", "Acceso Sur Loop (Pto 4)", "Soc. Hw 1 / Loop Norte (Pto 5)", "Loop Fw A (Pto 6)", "Loop Fw B (Pto 7)", "CX 1S/2S con Loop 1S (Pto 8)", "Loop Hw / CX Loop 1S/2S (Pto 9)", "Loop Hw / Adit 65 (Pto 10)", "Loop Hw entre P4 y P5 (Pto 11)", "CAV acceso descarga CH DT (Pto 13)", "Galería curva CH DT (Pto 14)"], "TENIENTE_7": ["OP 24"], "TENIENTE_8": [], "ANDESITA": ["EDIFICIO 132"], "COLÓN": [], "ADIT_71": ["EST. 1 A SUPERFICIE", "EST. 1 A EST. 2", "EST. 5 A EST. 4"]}, "CNC_NIVEL_2": ["Interferencia por derrumbe", "Comunicación", "Trabajos en ruta", "Traslado personal DET", "ruta no apta para el ingreso de mixer", "Simulacros", "Ventana horaria", "Restricción por evento climatico", "Movilizaciones", "Visita Gerencia GSYS", "Cambio de prioridad", "Sin Autorizacion DET", "APP no disponible", "Planta sin comunicación", "Sismología", "Ruta marina", "Cenefa", "Trabajo otras empresas", "Equipos en área", "Marina en postura", "Liberación de gases", "Energía", "Agua", "Cancha no lista", "Trabajos otras disciplinas", "Cancelacion Suministro", "Pedido Fuera de Programa", "Confirmacion fuera de horario", "Indisponibilidad de mixer propio", "Falta operador", "Falta personal OOCC", "Equipo shortcrete F/S", "Bomba F/S", "Problemas con escolta", "Lento retorno de equipos", "Mixer Retrasado", "Sin retorno de mixer a planta", "Capacidad maxima equipo", "Mezcladores", "Postura rematada con menos m3", "Cambio de Postura", "Suspension Administrativa", "Planificación errónea", "Problemas en la calidad", "Falta suministros", "Falla planta", "Incumplimiento horario APP", "Equipo F/S Xtreme", "Tarjeta Verde", "Somnolencia", "Proceso de carguío tarda mas de lo programado", "Espera equipo en planta"], "CNC_NIVEL_1": ["Ruta Codelco", "Clima", "Personal", "Prioridades", "APP no disponible", "Comunicación", "Sismología", "Ruta", "Interferencia empresas", "Liberación de gases", "Servicios", "Frente no preparada", "Pedido", "Indisponibilidad de mixer propio", "Dotación no disponible", "Equipos", "Postura", "Suministro", "Planificación errónea", "Calidad", "Indisponibilidad de planta", "Incumplimiento horario APP", "Equipo F/S", "Planta", "Falla operacional", "Espera equipo en planta"], "RESPONSABLE_CNC": ["CODELCO", "INTERNA", "SUMINISTRO"]};
+
+function fillSelect(el, opts, includeTodos=false, todosLabel="Todos") {
+  if(!el) return;
+  const current = el.value;
+  el.innerHTML = "";
+  if(includeTodos) {
+    const o = document.createElement("option");
+    o.value = "Todos"; o.textContent = todosLabel;
+    el.appendChild(o);
+  }
+  (opts||[]).forEach(v => {
+    const o = document.createElement("option");
+    o.value = v; o.textContent = v;
+    el.appendChild(o);
+  });
+  if(current && [...el.options].some(o=>o.value===current)) el.value = current;
+}
+
+function ensureDatalist(id, opts) {
+  let dl = document.getElementById(id);
+  if(!dl) {
+    dl = document.createElement("datalist");
+    dl.id = id;
+    document.body.appendChild(dl);
+  }
+  dl.innerHTML = "";
+  (opts||[]).forEach(v => {
+    const o = document.createElement("option");
+    o.value = v;
+    dl.appendChild(o);
+  });
+  return dl;
+}
+
+function attachListOrFill(selectId, listId, opts) {
+  const el = document.getElementById(selectId);
+  if(!el) return;
+  if(el.tagName.toLowerCase()==="select") {
+    fillSelect(el, opts, false);
+  } else {
+    ensureDatalist(listId, opts);
+    el.setAttribute("list", listId);
+  }
+}
+
+function applyCatalogosToForm() {
+  // IDs esperados del formulario (si existen). Si tu HTML usa otros IDs, igual funciona con los filtros.
+  attachListOrFill("inputGrado","dlGrado", CATALOGOS_HORMIGON.GRADO);
+  attachListOrFill("inputSuministro","dlSuministro", CATALOGOS_HORMIGON.SUMINISTRO);
+  attachListOrFill("inputTurno","dlTurno", CATALOGOS_HORMIGON.TURNO);
+  attachListOrFill("inputGrupo","dlGrupo", CATALOGOS_HORMIGON.GRUPO);
+  attachListOrFill("inputSalaControl","dlSalaControl", CATALOGOS_HORMIGON.SALA_CONTROL);
+  attachListOrFill("inputCNC2","dlCNC2", CATALOGOS_HORMIGON.CNC_NIVEL_2);
+  attachListOrFill("inputCNC1","dlCNC1", CATALOGOS_HORMIGON.CNC_NIVEL_1);
+  attachListOrFill("inputResponsableCNC","dlRespCNC", CATALOGOS_HORMIGON.RESPONSABLE_CNC);
+
+  // MINA + LABOR dependiente
+  const minaEl = document.getElementById("inputMina");
+  const laborEl = document.getElementById("inputLaborPostura");
+  if(minaEl) {
+    if(minaEl.tagName.toLowerCase()==="select") fillSelect(minaEl, CATALOGOS_HORMIGON.MINA, false);
+    else {
+      ensureDatalist("dlMina", CATALOGOS_HORMIGON.MINA);
+      minaEl.setAttribute("list","dlMina");
+    }
+    const onMinaChange = () => {
+      const mina = minaEl.value;
+      const opts = (CATALOGOS_HORMIGON.LABOR_POR_MINA && CATALOGOS_HORMIGON.LABOR_POR_MINA[mina]) ? CATALOGOS_HORMIGON.LABOR_POR_MINA[mina] : [];
+      if(laborEl) {
+        if(laborEl.tagName.toLowerCase()==="select") fillSelect(laborEl, opts, false);
+        else {
+          ensureDatalist("dlLabor", opts);
+          laborEl.setAttribute("list","dlLabor");
+        }
+      }
+    };
+    minaEl.addEventListener("change", onMinaChange);
+    onMinaChange();
+  }
+}
+
+function applyCatalogosToFilters() {
+  // Filtros arriba (si existen)
+  fillSelect(document.getElementById("filterMes"), [], true, "Todos"); // Mes se calcula desde FECHA: queda dinámico
+  fillSelect(document.getElementById("filterTurno"), CATALOGOS_HORMIGON.TURNO, true, "Todos");
+  fillSelect(document.getElementById("filterMina"), CATALOGOS_HORMIGON.MINA, true, "Todas");
+  fillSelect(document.getElementById("filterGrado"), CATALOGOS_HORMIGON.GRADO, true, "Todos");
+  fillSelect(document.getElementById("filterSuministro"), CATALOGOS_HORMIGON.SUMINISTRO, true, "Todos");
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  // Aplica a filtros y formulario (si existen)
+  applyCatalogosToFilters();
+  applyCatalogosToForm();
+
+  // Si tu dashboard abre un modal al presionar "Nuevo registro", re-aplicamos al abrir.
+  const btnNuevo = document.getElementById("btnNuevoRegistro");
+  if(btnNuevo) btnNuevo.addEventListener("click", () => setTimeout(applyCatalogosToForm, 50));
+});
+</script>
+
 </body>
 </html>
